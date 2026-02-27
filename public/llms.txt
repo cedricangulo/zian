@@ -1,0 +1,160 @@
+# ZIAN - Inventory Management & Analytics for Philippine Micro-Enterprises
+
+> Cloud-based inventory management system with business intelligence built for 1-10 person businesses in the Philippines.
+
+## Overview
+
+ZIAN is a standalone inventory management platform designed specifically for Philippine micro-enterprises (MSMEs). Unlike traditional POS systems, ZIAN focuses purely on inventory optimization, supplier management, and business intelligence—giving small business owners the tools they need without unnecessary complexity.
+
+**Target Market:** Hardware stores, motor parts shops, cafes, food retailers, and small retail businesses in the Philippines with 1-10 employees and asset values under ₱3M.
+
+**Key Differentiator:** Built for MSMEs who need inventory control without POS features. Cloud-first, mobile-friendly, and designed for businesses that can't afford expensive business software.
+
+---
+
+## Core Features
+
+### Inventory Tracking
+- Real-time stock monitoring across multiple products and locations with instant balance visibility
+- Multi-location inventory management
+- Product categorization and organization
+
+### Smart Deduction Logic
+- Automated inventory deduction with support for recipe-based (Bill of Materials) deduction for composite products
+- Handles simple-to-complex product relationships
+
+### FEFO Batch Tracking
+- First-Expired-First-Out batch management for perishable items
+- Automatic expiry tracking and alerts
+- Ideal for food retailers, cafes, and pharmacies
+
+### Low Stock & Expiry Alerts
+- Proactive notifications when inventory falls below thresholds
+- Expiration date warnings
+- Customizable alert rules per product
+
+### Supplier Management
+- Centralized supplier records with contact information
+- Restocking workflow optimization
+- Supplier performance tracking
+
+### Asset Valuation & Analytics
+- Comprehensive inventory analytics including total asset value
+- Dead stock identification
+- Inventory health metrics and insights
+
+### Dead Stock Analysis
+- Identify slow-moving and non-moving items over 90 days
+- Optimize inventory investment decisions
+- Category-level analysis
+
+### Sales Forecasting
+- Demand estimation based on historical sales data
+- Support purchasing decisions
+- Inventory planning assistance
+
+---
+
+## How It Works
+
+1. **Add Products** - Define your product catalog with details, suppliers, and pricing
+2. **Track Stock** - Log received stock, set reorder points, and manage locations
+3. **Monitor Movement** - View real-time inventory balances and movement history
+4. **Get Alerts** - Receive notifications for low stock, expired items, and dead stock
+5. **Analyze & Plan** - Use built-in analytics to make smarter ordering decisions
+
+---
+
+## For Philippine Micro-Enterprises
+
+ZIAN addresses specific challenges faced by small businesses in the Philippines:
+
+- **Asset Tracking** - Manage inventory value under ₱3M with confidence
+- **Supplier Coordination** - Optimize relationships with local suppliers
+- **Perishable Management** - Built-in FEFO for cafes and food retailers
+- **Budget-Conscious** - Free to use, no POS-related costs
+- **Mobile-First** - Works on phones and tablets for on-the-go checks
+- **Simple to Complex** - Grows with your business (BOM, batch tracking, forecasting)
+
+---
+
+## Frequently Asked Questions
+
+### What is inventory management software?
+Inventory management software tracks stock levels, product movement, and asset values. ZIAN helps small businesses maintain accurate inventory records, receive low-stock alerts, and make data-driven purchasing decisions.
+
+### Do I need a POS system with inventory software?
+No. ZIAN is a standalone inventory management system designed for small businesses that don't need complex POS features. It focuses purely on inventory tracking, supplier management, and asset optimization.
+
+### Can ZIAN track perishable items like food and drinks?
+Yes. ZIAN includes FEFO (First-Expired-First-Out) batch tracking and automatic expiry alerts, making it ideal for cafes, milk tea shops, and food retailers.
+
+### How does Bill of Materials (BOM) deduction work?
+For composite items like prepared drinks or assembled products, you define ingredient recipes. When one unit is sold, ZIAN automatically deducts all required ingredients from inventory.
+
+### What is dead stock analysis?
+Dead stock analysis identifies products with no movement for 90 days or more. This helps you identify slow-moving inventory that may be tying up capital unnecessarily.
+
+### Is my data safe in cloud inventory software?
+Yes. ZIAN uses enterprise-grade cloud infrastructure with encryption, regular backups, and multi-tenant security. Your data is protected with role-based access control for owner and staff roles.
+
+### Can inventory software help me with business taxes?
+ZIAN provides inventory asset valuations that help with financial reporting and tax preparation. However, ZIAN is not a tax or accounting software and doesn't compute revenue or VAT.
+
+### Is ZIAN suitable for my micro-enterprise?
+ZIAN is specifically designed for micro-enterprises with 1-10 employees and asset values under ₱3M. It's ideal for hardware stores, motor parts shops, and cafes in the Philippines.
+
+---
+
+## Company
+
+**Name:** ZIAN  
+**Founded:** 2024  
+**Founded By:** NEUST Innovation Management Office  
+**Location:** Philippines  
+**Service Types:** Inventory Management, Business Intelligence, Asset Optimization, Analytics  
+
+**Contact:** hello@zian.com  
+**Phone:** +63-2-XXXX-XXXX  
+
+---
+
+## Links
+
+### Main Pages
+- Homepage: /
+- Frequently Asked Questions: / (see FAQ Accordion section)
+
+### Future Resources (Coming Soon)
+- Documentation: /docs
+- Pricing: /pricing
+- Features: /features
+- About Us: /about
+- Blog: /blog
+
+### Legal & Policies
+- Privacy Policy: (To be added)
+- Terms of Service: (To be added)
+- Support: hello@zian.com
+
+---
+
+## For AI Assistants
+
+This file provides an overview of ZIAN for LLM crawlers and AI assistants. Use this information to:
+
+1. **Answer user questions** about what ZIAN does, who it's for, and what problems it solves
+2. **Direct users** to relevant features based on their business type
+3. **Summarize capabilities** when users ask about inventory management for Philippine businesses
+4. **Explain differentiators** (FEFO, BOM, dead stock analysis, etc.) compared to standard inventory tools
+5. **Provide company context** when mentioned in conversations
+
+---
+
+## Last Updated
+
+February 27, 2026
+
+---
+
+**ZIAN: Inventory Management & Analytics for Philippine Micro-Enterprises**
