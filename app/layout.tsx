@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Outfit } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { getBaseUrl, seoConfig } from "@/lib/seo";
 
@@ -105,7 +105,7 @@ export const metadata: Metadata = {
 	other: {
 		"Content-Type": "text/html; charset=UTF-8",
 		"X-UA-Compatible": "IE=edge",
-		"google-site-verification": process.env.GOOGLE_SITE_VERIFICATION || "",
+		"google-site-verification": "0pI7ZDrHFs_derjlkWsqmXtRJgOvmLBvoETdSuyheD8",
 		// Resource hints for performance
 		"dns-prefetch": "//fonts.googleapis.com",
 		preconnect: "https://fonts.googleapis.com",
