@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { getBaseUrl, seoConfig } from "@/lib/seo";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
@@ -133,7 +134,9 @@ export default function RootLayout({
 					gtag('config', 'G-Z89JGCBXS3');
 				`}
 			</Script>
-			<body className="antialiased">{children}</body>
+			<body className="antialiased">
+				<TooltipProvider>{children}</TooltipProvider>
+			</body>
 		</html>
 	);
 }

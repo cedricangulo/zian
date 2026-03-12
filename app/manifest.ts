@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
-import { seoConfig, getBaseUrl } from "@/lib/seo";
+import { getBaseUrl, seoConfig } from "@/lib/seo";
 
 export default function manifest(): MetadataRoute.Manifest {
-	const baseUrl = getBaseUrl();
+	const _baseUrl = getBaseUrl();
 
 	return {
 		name: seoConfig.appName,

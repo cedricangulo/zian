@@ -118,6 +118,7 @@
 
 @layer base {
 	* {
+		/* outline: 1px lime dashed; */
 		@apply border-border outline-ring/50;
 	}
 	body {

@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import {
 	Accordion,
+	AccordionContent,
 	AccordionItem,
 	AccordionTrigger,
-	AccordionContent,
 } from "@/components/ui/accordion";
 import {
-	getBaseUrl,
-	seoConfig,
 	generateOrganizationSchema,
 	generateSoftwareApplicationSchema,
 	generateWebsiteSchema,
+	getBaseUrl,
+	seoConfig,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
