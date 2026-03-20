@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getBaseUrl, seoConfig } from "@/lib/seo";
+import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
 	// Title Configuration
 	title: {
 		default: seoConfig.en.title,
-		template: "%s | ZIAN",
+		template: "ZIAN | %s",
 	},
 
 	// Description and Keywords
@@ -119,7 +121,11 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" className={outfit.variable} suppressHydrationWarning>
+		<html
+			lang="en"
+			className={cn("font-sans", outfit.variable)}
+			suppressHydrationWarning
+		>
 			{/* Google Analytics */}
 			<Script
 				async
@@ -135,7 +141,14 @@ export default function RootLayout({
 				`}
 			</Script>
 			<body className="antialiased">
-				<TooltipProvider>{children}</TooltipProvider>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<TooltipProvider>{children}</TooltipProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);

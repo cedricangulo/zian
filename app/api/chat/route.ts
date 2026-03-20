@@ -1,14 +1,28 @@
 import { MODEL_NAME, ollama } from "@/lib/ollama";
-import { getZianSystemPrompt } from "@/lib/zian-context";
+import { getZianSystemPromptForQuery } from "@/lib/zian-context";
+import type { ChatRequestPayload } from "@/features/chat/types";
+import {
+	normalizeChatProfile,
+} from "@/features/chat/profile-presets";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-	const { messages } = await req.json();
+	const { messages, chatProfile } = (await req.json()) as ChatRequestPayload;
+	const safeProfile = normalizeChatProfile(chatProfile);
+	const latestUserMessage = [...messages]
+		.reverse()
+		.find(
+			(msg: { role: string; content: string }) =>
+				msg.role === "user" && typeof msg.content === "string",
+		);
 
 	// Prepare messages with system prompt
-	const systemPrompt = getZianSystemPrompt();
+	const systemPrompt = getZianSystemPromptForQuery(
+		latestUserMessage?.content ?? "",
+		safeProfile,
+	);
 	const allMessages = [
 		{ role: "system" as const, content: systemPrompt },
 		...messages,

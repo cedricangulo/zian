@@ -10,9 +10,9 @@ import {
 	MessageResponse,
 	streamdownPlugins,
 } from "@/components/ai-elements";
-import { MessageCircleIcon } from "lucide-react";
+import { CopyIcon, MessageCircleIcon } from "lucide-react";
 import type { ChatMessage } from "../types";
-import { useEffect } from "react";
+import { MessageAction } from "@/components/ai-elements/message";
 
 interface ChatMessagesProps {
 	messages: ChatMessage[];
@@ -20,12 +20,8 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, messagesEndRef }: ChatMessagesProps) {
-	useEffect(() => {
-		messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
-
 	return (
-		<Conversation className="flex-1 max-w-3xl mx-auto w-full">
+		<Conversation className="flex-1">
 			{messages.length === 0 ? (
 				<ConversationEmptyState
 					icon={<MessageCircleIcon className="size-6" />}
@@ -33,7 +29,7 @@ export function ChatMessages({ messages, messagesEndRef }: ChatMessagesProps) {
 					description="Start a conversation by typing a message below"
 				/>
 			) : (
-				<ConversationContent>
+				<ConversationContent className="max-w-3xl mx-auto w-full">
 					{messages.map((message) => (
 						<Message key={message.id} from={message.role}>
 							{message.role === "assistant" ? (
@@ -41,7 +37,15 @@ export function ChatMessages({ messages, messagesEndRef }: ChatMessagesProps) {
 									{message.content}
 								</MessageResponse>
 							) : (
-								<MessageContent className="bg-accent">{message.content}</MessageContent>
+								<MessageContent>{message.content}</MessageContent>
+							)}
+							{message.role === "assistant" && (
+								<MessageAction
+									onClick={() => navigator.clipboard.writeText(message.content)}
+									label="Copy"
+								>
+									<CopyIcon className="size-3" />
+								</MessageAction>
 							)}
 						</Message>
 					))}

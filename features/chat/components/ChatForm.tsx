@@ -1,10 +1,10 @@
 import {
 	PromptInput,
-  PromptInputBody,
-  PromptInputFooter,
-  type PromptInputMessage,
-  PromptInputSubmit,
-  PromptInputTextarea,
+	PromptInputBody,
+	PromptInputFooter,
+	type PromptInputMessage,
+	PromptInputSubmit,
+	PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 
 interface ChatFormProps {
@@ -22,7 +22,7 @@ export function ChatForm({
 }: ChatFormProps) {
 	const handlePromptSubmit = (
 		_message: PromptInputMessage,
-		event: React.FormEvent<HTMLFormElement>
+		event: React.FormEvent<HTMLFormElement>,
 	) => {
 		onSubmit(event);
 	};
@@ -30,7 +30,7 @@ export function ChatForm({
 	return (
 		<PromptInput
 			onSubmit={handlePromptSubmit}
-			className="max-w-3xl mx-auto my-4"
+			className="max-w-3xl mx-auto mb-4 z-30"
 			globalDrop
 			multiple
 		>
@@ -42,7 +42,10 @@ export function ChatForm({
 				/>
 			</PromptInputBody>
 			<PromptInputFooter>
-				<PromptInputSubmit className="ml-auto" disabled={!input.trim() || isLoading} />
+				<PromptInputSubmit
+					className="ml-auto"
+					disabled={!input.trim() || isLoading}
+				/>
 			</PromptInputFooter>
 		</PromptInput>
 	);

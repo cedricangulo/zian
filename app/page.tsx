@@ -109,9 +109,13 @@ export default function Page() {
 				</h2>
 				<Accordion defaultValue={["faq-0"]} className="w-full">
 					{seoConfig.en.faqs.map((faq, index) => (
-						<AccordionItem key={`faq-${index}`} value={`faq-${index}`}>
-							<AccordionTrigger>{faq.question}</AccordionTrigger>
-							<AccordionContent>{faq.answer}</AccordionContent>
+						<AccordionItem key={`faq-${index + 1}`} value={`faq-${index}`}>
+							<AccordionTrigger className="text-base/relaxed">
+								{faq.question}
+							</AccordionTrigger>
+							<AccordionContent className="text-base/relaxed">
+								{faq.answer}
+							</AccordionContent>
 						</AccordionItem>
 					))}
 				</Accordion>

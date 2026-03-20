@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
-import type { ChatMessage } from "../types";
+import type { ChatMessage, ChatProfile } from "../types";
 import { sendChatMessage } from "../api/chat-service";
 
-export function useChat() {
+export function useChat(chatProfile: ChatProfile) {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +30,8 @@ export function useChat() {
 				[...messages, userMessage].map((msg) => ({
 					role: msg.role,
 					content: msg.content,
-				}))
+				})),
+				chatProfile,
 			).then((stream) => stream.getReader());
 
 			const decoder = new TextDecoder();

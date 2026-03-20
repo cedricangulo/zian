@@ -1,243 +1,413 @@
-/**
- * ZIAN Knowledge Base - Static Context for Business Owners
- * This file contains comprehensive information about ZIAN that the chatbot uses
- * to provide accurate, business-focused guidance.
- */
-
-export const ZIAN_KNOWLEDGE_BASE = `
-# ZIAN: SaaS Inventory Management System - Business Owner Guide
-
-## What is ZIAN?
-
-ZIAN is a cloud-based inventory management system designed specifically for micro-enterprises (1-10 employees). It's built to help business owners like you optimize your inventory without getting tangled in complex POS (Point of Sale) features.
-
-**Key Facts:**
-- **Best For:** Hardware stores, motor parts shops, cafes, milk tea shops, and similar retail businesses
-- **Your Business Size:** Single-branch operations with fewer than 10 employees and less than ₱3M in assets
-- **What It Does:** Tracks inventory, monitors expiry dates, alerts you about low stock, and provides insights into your assets
-- **What It Doesn't Do:** ZIAN is NOT a checkout system. It does NOT track sales, revenue, taxes, or discounts.
-
----
-
-## Core Features You Need to Know
-
-### 1. Stock Dispatch Module (Not a POS)
-
-Instead of a traditional cash register, your staff uses the **Dispatch Module** to release items from inventory.
-
-**How It Works:**
-- Staff requests items to be released from inventory
-- The system generates a **Dispatch Slip** (a pick list)
-- Items are deducted from your inventory
-- No prices, sales, or revenue tracking happens here
-
-**Why This Matters:** You focus purely on inventory movement, not sales calculations.
-
-### 2. Two Types of Deduction Logic
-
-#### Standard Deduction
-- **What:** Simple 1-to-1 deduction
-- **Best For:** Hardware stores, motor parts shops
-- **Example:** Release 5 nails → 5 nails removed from inventory
-
-#### Recipe / Bill of Materials (BOM)
-- **What:** Automatic deduction of multiple ingredients for one product
-- **Best For:** Cafes, milk tea shops, bakeries
-- **Example:** Release 1 milk tea → System automatically deducts: 1 cup tea, 200ml milk, 50g pearls
-- **Benefit:** Perfect for composite products where one sale requires multiple ingredients
-
-### 3. FEFO Batch Tracking (First-Expired-First-Out)
-
-ZIAN tracks inventory by **batches** and automatically prioritizes selling older stock before newer stock.
-
-**What Is a Batch?**
-- Each delivery of goods is a separate batch
-- Each batch has: batch number, cost price, quantity, and expiry date
-- The system remembers when you received each batch
-
-**How FEFO Works:**
-1. You receive 10 units of milk on Jan 1 (expires Feb 1) → Batch 001
-2. You receive 10 units of milk on Jan 15 (expires Feb 15) → Batch 002
-3. Your staff requests 5 units of milk → System gives them from Batch 001 first (older expiry)
-4. System automatically tracks remaining quantities by batch
-
-**Why You Should Care:**
-- Prevents expired products from being used
-- Reduces waste and loss
-- Ensures compliance with food safety (for cafes/restaurants)
-- Maximizes profitability by using old stock first
-
----
-
-## Business Intelligence (BI) Features
-
-ZIAN provides insights that help you make better business decisions:
-
-### 1. Total Asset Valuation
-- See the total monetary value of all your inventory at any time
-- Based on cost price × remaining quantity per batch
-- Helps with financial planning and loan applications
-
-### 2. Low Stock & Expiry Alerts
-- **Low Stock Alert:** When a product falls below your minimum stock level
-- **Expiry Alert:** When products are approaching their expiry date
-- **Your Action:** Reorder before running out or before items expire
-
-### 3. Dead Stock Analysis
-- Identifies items that haven't moved in 90 days
-- Helps you spot:
-  - Slow-moving products (maybe reduce stock)
-  - Obsolete items (consider discontinuing)
-  - Wasted money (tie-up in unsold inventory)
-
----
-
-## How ZIAN Organizes Your Data
-
-### Products & Categories
-- **Categories:** Group similar products (e.g., "Tea Leaves", "Dairy Products", "Hardware - Fasteners")
-- **Products:** Individual items (e.g., "Green Tea 500g", "Whole Milk 1L", "Nails 1-inch")
-- **SKU:** Unique code for each product (helps with quick identification)
-- **Unit Type:** How you measure (pieces, kilograms, liters, boxes, etc.)
-- **Minimum Stock Level:** The point where ZIAN alerts you to reorder
-
-### Recipes (For Composite Products)
-- If you have recipes, ZIAN tracks them
-- When staff releases a product with a recipe, all ingredients are automatically deducted
-- Example: 1 "Milk Tea" = 1 tea bag + 200ml milk + 50g pearls (all automatically removed)
-
-### Batches (Your Inventory Tracking)
-- Every time you receive stock, it becomes a batch
-- Each batch has:
-  - **Batch Number:** Unique identifier (helps you match with invoices)
-  - **Cost Price:** What you paid per unit
-  - **Initial Quantity:** How much you received
-  - **Remaining Quantity:** Current stock (decreases as items are dispatched)
-  - **Expiry Date:** When the product expires (critical for perishables)
-  - **Received Date:** When it arrived in your store
-
-### Transactions & Audit Trail
-- Every movement of inventory is logged
-- Includes: who did it, when, what product, which batch, how many units
-- Helps you track accountability and spot discrepancies
-
----
-
-## Typical Workflow for Business Owners
-
-### Day 1: Setting Up
-1. **Create your product catalog** - List all items you sell
-2. **Set categories** - Organize products into groups
-3. **Define minimum stock levels** - When should I reorder?
-4. **If needed, define recipes** - For composite products (milk tea, meals, etc.)
-
-### Daily: Managing Inventory
-1. **Staff uses Dispatch Module** - When releasing items for sale/use
-2. **System auto-deducts** - Stock removed based on dispatch requests
-3. **System tracks by batch** - Knows which batches were used (FEFO)
-
-### Weekly/Monthly: Monitoring
-1. **Check Low Stock Alerts** - Reorder if necessary
-2. **Review Expiry Alerts** - Prioritize selling expiring items
-3. **Check Asset Valuation** - How much money is tied up in inventory?
-4. **Review Dead Stock** - Any items not selling?
-
-### As Needed: Adjustments
-- **Stock Adjustments:** If you discover discrepancies or damaged goods
-- **Batch Info Updates:** Correct any wrong batch data
-- **Minimum Level Changes:** Adjust reorder points based on experience
-
----
-
-## User Roles & Access Control
-
-ZIAN supports two main roles:
-
-### Owner
-- Full access to all features
-- Can create/edit products, recipes, and batches
-- Can view all analytics and alerts
-- Can manage staff access
-
-### Staff
-- Limited access (as you configure)
-- Usually: Use Dispatch Module only
-- Cannot modify product catalog or pricing
-
----
-
-## Key Metrics for Your Business
-
-Understanding these will help you manage better:
-
-1. **Asset Turnover:** How quickly inventory is moving (faster = better)
-2. **Stock-Out Prevention:** Never running out (low stock alerts help)
-3. **Waste Reduction:** Minimizing expired items (FEFO batch tracking helps)
-4. **Inventory Accuracy:** Matching physical counts to system records
-5. **Dead Stock Ratio:** How much money is stuck in slow-moving items
-
----
-
-## Common Questions Business Owners Ask
-
-### "What if I receive a damaged batch?"
-Use the **Stock Adjustment** feature to reduce the quantity of that batch.
-
-### "Can ZIAN help me with sales?"
-No. ZIAN tracks inventory only. You track sales separately (if needed) using accounting software.
-
-### "What if I forget to dispatch an item?"
-You can manually adjust batches to correct discrepancies.
-
-### "How do I know if I'm ordering too much?"
-Check the **Dead Stock Analysis** report. Items not moving for 90 days suggest you're ordering too much.
-
-### "Can multiple staff members use it?"
-Yes, but you (as Owner) control what each person can do via roles.
-
-### "Is my data secure?"
-Yes. ZIAN uses industry-standard security (Clerk for authentication) and is hosted in the cloud.
-
-### "Where is my data stored?"
-ZIAN is a cloud-based system. Your data is stored securely and accessible from anywhere.
-
----
-
-## Data Structure Reference (For Reference)
-
-ZIAN stores data in these logical groups:
-
-- **Organization Data:** Your business info and settings
-- **User Data:** Staff and owner accounts
-- **Product Catalog:** All products, categories, recipes
-- **Inventory Batches:** All current and historical batches with expiry tracking
-- **Stock Movements:** Every dispatch and adjustment transaction
-- **Audit Trail:** Complete history of who did what and when
-
----
-
-## Best Practices for Using ZIAN
-
-1. **Set Accurate Minimum Stock Levels:** Don't set them too high (wastes money) or too low (risks stockouts)
-2. **Update Batches Promptly:** Log new batches when goods arrive
-3. **Use Batch Numbers Matching Invoices:** Makes reconciliation easy
-4. **Review Alerts Weekly:** Don't ignore low stock or expiry alerts
-5. **Do Physical Counts Monthly:** Verify system matches reality
-6. **Categorize Everything:** Makes searching and analysis easier
-7. **For Recipes:** Keep them updated as your ingredients change
-
----
-
-## Where to Go for Help
-
-When using ZIAN:
-- **Questions about inventory management?** Ask the chatbot
-- **Need BI insights?** Ask about asset valuation, dead stock, alerts
-- **Workflow questions?** Ask how to dispatch, adjust, or track batches
-- **Business decisions?** Ask what the data suggests
-
-This chatbot is your business intelligence assistant, trained on ZIAN's complete system. Ask anything about how to manage your inventory better!
+import type { ChatProfile } from "@/features/chat/types";
+import { normalizeChatProfile } from "@/features/chat/profile-presets";
+
+type KnowledgeChunkId =
+	| "overview"
+	| "dispatch"
+	| "fefo"
+	| "recipes"
+	| "bi"
+	| "troubleshooting";
+
+type BusinessChunkId =
+	| "profile"
+	| "inventory"
+	| "alerts"
+	| "actions"
+	| "risks"
+	| "recipes";
+
+export type PromptUserRole = "Owner" | "Staff";
+
+type LanguageMode = "english" | "filipino" | "taglish";
+type ResponseFormatMode = "standard" | "inventory_table";
+
+export const ZIAN_SUMMARY = `
+SYSTEM: ZIAN is cloud inventory management for micro-enterprises (1-10 staff, single branch, under PHP 3M assets).
+NOT_POS: ZIAN is not a POS and does not track sales, revenue, tax, or discounts.
+CORE: Stock Dispatch deducts inventory; FEFO prioritizes earliest expiry batches; Recipe/BOM deducts ingredient components automatically.
+BI: Asset valuation, low stock alerts, expiry alerts, dead stock analysis (90+ days no movement).
+ROLES: Owner has full access; Staff mainly handles dispatch based on permissions.
+BATCH_FIELDS: batch_number, cost_price, quantity, expiry_date, received_date.
+WORKFLOW: setup catalog, daily dispatch, weekly alerts review, monthly physical count.
 `;
+
+export const ZIAN_KNOWLEDGE_CHUNKS: Record<KnowledgeChunkId, string> = {
+	overview: `
+OVERVIEW: ZIAN helps business owners manage stock movement accurately and avoid waste. Core domain is inventory operations, not checkout or accounting.
+FIT: Works well for hardware, motor parts, cafe, and milk tea operations.
+`,
+	dispatch: `
+DISPATCH: Staff releases items through Stock Dispatch. System creates a dispatch slip and deducts inventory immediately.
+USE_CASE: For simple inventory movement where one item release deducts the same item quantity.
+`,
+	fefo: `
+FEFO: Inventory is tracked by batches. Each release should consume the batch with earliest expiry first.
+VALUE: FEFO reduces spoilage, supports food safety practices, and improves stock utilization.
+`,
+	recipes: `
+RECIPE_BOM: Composite products use recipe deduction. Releasing one sellable item deducts multiple ingredients automatically.
+VALUE: Ensures ingredient-level accuracy for cafe and milk tea operations.
+`,
+	bi: `
+BI: Monitor total asset valuation, low stock, expiry risk, and dead stock.
+DEAD_STOCK: Items with no movement for 90+ days indicate tied-up capital and possible assortment issues.
+`,
+	troubleshooting: `
+TROUBLESHOOTING: Damaged goods or missed dispatch can be corrected using stock adjustments and proper batch updates.
+CONTROL: Review transaction history and audit trails for accountability and discrepancy checks.
+`,
+};
+
+export const ZIAN_BUSINESS_CHUNKS: Record<BusinessChunkId, string> = {
+	profile: `
+BUSINESS: Warm Brew Cafe, milk tea shop in Makati, operating since Dec 2024, team size 6.
+TRAFFIC: Typical daily footfall 100-150 customers. Top drinks include Classic Milk Tea and Brown Sugar Boba.
+`,
+	inventory: `
+INVENTORY_SNAPSHOT: 25 products, 12 active batches, 3 recipes.
+ASSET_VALUE: PHP 2847.50 current inventory value based on cost x remaining quantity.
+HEALTH_SCORE: 62/100 due to expiry risk, low-stock gaps, and slow movers.
+`,
+	alerts: `
+ALERTS: 1 critical, 4 high, 3 medium, 2 low.
+LOW_STOCK: Oolong tea is near-out, 16oz cup packs are near-out, hazelnut syrup is low.
+EXPIRY: Fresh milk expires on Mar 20, 2026. Hazelnut syrup expires on Mar 25, 2026.
+EXPIRED: Honey and vanilla syrup have already expired.
+`,
+	actions: `
+IMMEDIATE_ACTIONS: Reorder oolong tea and 16oz cups now. Prioritize consumption of near-expiry milk using FEFO.
+THIS_WEEK: Run focused drink promos to consume hazelnut syrup before expiry.
+THIS_MONTH: Tighten ordering cadence for milk and cups based on usage velocity.
+`,
+	risks: `
+RISK_COST: Expired value is PHP 187 currently.
+DEAD_STOCK: Red bean has no movement for 94 days. Matcha is slow-moving with only 1 unit sold in 94 days.
+OPERATING_RISK: Cup stockout can disrupt service despite healthy demand.
+`,
+	recipes: `
+RECIPE_CONTEXT: Classic Milk Tea and Brown Sugar Boba depend on black/oolong tea, milk/cream, sugar, and tapioca pearls.
+OPTIMIZATION: Track ingredient-level usage to align purchase volumes with actual drink mix.
+`,
+};
+
+const COMPLEX_QUERY_KEYWORDS = [
+	"prioritize",
+	"optimize",
+	"analyze",
+	"analysis",
+	"strategy",
+	"forecast",
+	"predict",
+	"trend",
+	"risk",
+	"recommend",
+	"recommendation",
+	"plan",
+	"week",
+	"month",
+	"quarter",
+	"root cause",
+	"why",
+];
+
+const CHUNK_KEYWORDS: Array<{ id: KnowledgeChunkId; keywords: string[] }> = [
+	{
+		id: "dispatch",
+		keywords: ["dispatch", "release", "deduct", "slip", "movement"],
+	},
+	{
+		id: "fefo",
+		keywords: ["fefo", "batch", "expiry", "expired", "expiring", "date"],
+	},
+	{
+		id: "recipes",
+		keywords: ["recipe", "bom", "ingredient", "milk tea", "drink"],
+	},
+	{
+		id: "bi",
+		keywords: [
+			"report",
+			"alert",
+			"dead stock",
+			"valuation",
+			"asset",
+			"low stock",
+		],
+	},
+	{
+		id: "troubleshooting",
+		keywords: ["adjust", "damage", "damaged", "error", "discrepancy", "audit"],
+	},
+	{
+		id: "overview",
+		keywords: ["what is", "about", "overview", "zian", "system"],
+	},
+];
+
+const BUSINESS_CHUNK_KEYWORDS: Array<{
+	id: BusinessChunkId;
+	keywords: string[];
+}> = [
+	{
+		id: "alerts",
+		keywords: [
+			"priority",
+			"prioritize",
+			"urgent",
+			"low stock",
+			"expiry",
+			"expired",
+			"alert",
+		],
+	},
+	{
+		id: "inventory",
+		keywords: ["inventory", "stock", "asset", "value", "valuation", "health"],
+	},
+	{
+		id: "actions",
+		keywords: [
+			"next move",
+			"what should",
+			"what now",
+			"action",
+			"reorder",
+			"plan",
+		],
+	},
+	{
+		id: "risks",
+		keywords: ["risk", "waste", "dead stock", "slow", "loss", "losing"],
+	},
+	{
+		id: "recipes",
+		keywords: ["recipe", "ingredient", "bom", "drink mix", "menu"],
+	},
+	{ id: "profile", keywords: ["business", "cafe", "shop", "owner"] },
+];
+
+function normalizeQuery(userQuery: string): string {
+	return userQuery.trim().toLowerCase();
+}
+
+function detectLanguageMode(userQuery: string): LanguageMode {
+	const query = normalizeQuery(userQuery);
+	if (!query) return "english";
+
+	const filipinoKeywords = [
+		"ano",
+		"paano",
+		"bakit",
+		"kailangan",
+		"pwede",
+		"saan",
+		"kailan",
+		"ako",
+		"natin",
+		"namin",
+		"naku",
+		"po",
+		"opo",
+		"uunahin",
+		"ito",
+		"iyan",
+		"mo",
+		"ba",
+		"ng",
+	];
+
+	const englishKeywords = [
+		"what",
+		"how",
+		"why",
+		"when",
+		"where",
+		"should",
+		"could",
+		"inventory",
+		"stock",
+		"priority",
+		"week",
+		"month",
+		"damage",
+		"adjustment",
+		"report",
+	];
+
+	const filipinoCount = filipinoKeywords.filter((keyword) =>
+		query.includes(keyword),
+	).length;
+	const englishCount = englishKeywords.filter((keyword) =>
+		query.includes(keyword),
+	).length;
+
+	if (filipinoCount > 0 && englishCount > 0) return "taglish";
+	if (filipinoCount > englishCount) return "filipino";
+	return "english";
+}
+
+function getLanguageDirective(languageMode: LanguageMode): string {
+	if (languageMode === "filipino") {
+		return "Respond in Filipino with natural everyday wording. Use po/opo. Keep technical terms in clear English when needed.";
+	}
+
+	if (languageMode === "taglish") {
+		return "Respond in Taglish, matching the user's mixed style naturally. Use po/opo where it fits.";
+	}
+
+	return "Respond in English. Keep tone clear, warm, and practical.";
+}
+
+function getRoleDirective(role: PromptUserRole): string {
+	if (role === "Owner") {
+		return "Prioritize strategic guidance, risk impact, and financial tradeoffs while still giving one immediate action.";
+	}
+
+	return "Prioritize operational execution steps for daily tasks like dispatch, adjustments, and batch handling.";
+}
+
+function detectResponseFormatMode(userQuery: string): ResponseFormatMode {
+	const query = normalizeQuery(userQuery);
+	if (!query) return "standard";
+
+	const inventoryTableKeywords = [
+		"inventory",
+		"status",
+		"stock",
+		"prioritize",
+		"priority",
+		"this week",
+		"expiring",
+		"expired",
+		"low stock",
+		"dead stock",
+		"action needed",
+		"ano uunahin",
+		"ano dapat unahin",
+		"week",
+	];
+
+	return hasAnyKeyword(query, inventoryTableKeywords)
+		? "inventory_table"
+		: "standard";
+}
+
+function getFormatDirective(formatMode: ResponseFormatMode): string {
+	if (formatMode === "inventory_table") {
+		return `
+OUTPUT MODE: INVENTORY_TABLE
+1) Start with 1-2 short sentences.
+2) Then output a REQUIRED markdown table.
+3) Use this exact header: | Product | Status | Quantity | Expiry Date | Action Needed |
+4) Add markdown separator row exactly after header.
+5) Put each data row on its own new line, never in one paragraph.
+6) Include at least 4 data rows when inventory context is available.
+7) No bullet list before or after the table.
+8) Keep table values concise and operational.
+`;
+	}
+
+	return `
+OUTPUT MODE: STANDARD
+Keep answer concise, direct, and natural for chat.
+Do not add markdown tables unless explicitly needed.
+`;
+}
+
+function hasAnyKeyword(query: string, keywords: string[]): boolean {
+	return keywords.some((keyword) => query.includes(keyword));
+}
+
+function uniqueJoin(parts: string[]): string {
+	return [...new Set(parts.filter(Boolean))].join("\n").trim();
+}
+
+export function isComplexQuery(userQuery: string): boolean {
+	const query = normalizeQuery(userQuery);
+	if (!query) return false;
+	return hasAnyKeyword(query, COMPLEX_QUERY_KEYWORDS);
+}
+
+export function getRelevantKnowledgeContext(userQuery: string): string {
+	const query = normalizeQuery(userQuery);
+	if (!query) {
+		return uniqueJoin([
+			ZIAN_KNOWLEDGE_CHUNKS.overview,
+			ZIAN_KNOWLEDGE_CHUNKS.bi,
+		]);
+	}
+
+	const selected = CHUNK_KEYWORDS.filter((entry) =>
+		hasAnyKeyword(query, entry.keywords),
+	).map((entry) => ZIAN_KNOWLEDGE_CHUNKS[entry.id]);
+
+	if (selected.length === 0) {
+		return uniqueJoin([
+			ZIAN_KNOWLEDGE_CHUNKS.overview,
+			ZIAN_KNOWLEDGE_CHUNKS.bi,
+		]);
+	}
+
+	if (!selected.includes(ZIAN_KNOWLEDGE_CHUNKS.overview)) {
+		selected.unshift(ZIAN_KNOWLEDGE_CHUNKS.overview);
+	}
+
+	return uniqueJoin(selected);
+}
+
+export function getRelevantBusinessContext(userQuery: string): string {
+	const query = normalizeQuery(userQuery);
+	if (!query) {
+		return uniqueJoin([
+			ZIAN_BUSINESS_CHUNKS.profile,
+			ZIAN_BUSINESS_CHUNKS.inventory,
+			ZIAN_BUSINESS_CHUNKS.alerts,
+			ZIAN_BUSINESS_CHUNKS.actions,
+		]);
+	}
+
+	const selected = BUSINESS_CHUNK_KEYWORDS.filter((entry) =>
+		hasAnyKeyword(query, entry.keywords),
+	).map((entry) => ZIAN_BUSINESS_CHUNKS[entry.id]);
+
+	if (selected.length === 0) {
+		return uniqueJoin([
+			ZIAN_BUSINESS_CHUNKS.profile,
+			ZIAN_BUSINESS_CHUNKS.inventory,
+			ZIAN_BUSINESS_CHUNKS.alerts,
+		]);
+	}
+
+	if (!selected.includes(ZIAN_BUSINESS_CHUNKS.profile)) {
+		selected.unshift(ZIAN_BUSINESS_CHUNKS.profile);
+	}
+
+	return uniqueJoin(selected);
+}
+
+export function buildZianContextForQuery(userQuery: string): string {
+	const compactKnowledge = getRelevantKnowledgeContext(userQuery);
+	const businessSlice = getRelevantBusinessContext(userQuery);
+
+	if (!isComplexQuery(userQuery)) {
+		return uniqueJoin([ZIAN_SUMMARY, compactKnowledge, businessSlice]);
+	}
+
+	return uniqueJoin([
+		ZIAN_SUMMARY,
+		compactKnowledge,
+		businessSlice,
+		ZIAN_KNOWLEDGE_CHUNKS.troubleshooting,
+		ZIAN_BUSINESS_CHUNKS.risks,
+	]);
+}
+
+export const ZIAN_KNOWLEDGE_BASE = uniqueJoin([
+	ZIAN_SUMMARY,
+	...Object.values(ZIAN_KNOWLEDGE_CHUNKS),
+	...Object.values(ZIAN_BUSINESS_CHUNKS),
+]);
 
 /**
  * Get the complete ZIAN context as a formatted string
@@ -248,29 +418,74 @@ export function getZianContext(): string {
 }
 
 /**
- * Get a business-focused system prompt that includes ZIAN context
+ * Get a query-aware business-focused system prompt.
  */
-export function getZianSystemPrompt(): string {
-  return `
+export function getZianSystemPromptForQuery(
+	userQuery: string,
+	chatProfile?: Partial<ChatProfile>,
+): string {
+	const safeProfile = normalizeChatProfile(chatProfile);
+	const languageMode = detectLanguageMode(userQuery);
+	const responseFormatMode = detectResponseFormatMode(userQuery);
+	const languageDirective = getLanguageDirective(languageMode);
+	const formatDirective = getFormatDirective(responseFormatMode);
+	const roleDirective = getRoleDirective(safeProfile.role);
+	const queryContext = buildZianContextForQuery(userQuery);
+
+	return `
 You are the ZIAN Business Assistant. You are a professional, warm, and highly supportive partner for micro-enterprise owners. Your goal is to make inventory management feel easy and stress-free.
 
+### ACTIVE CHAT PROFILE
+TEMPLATE: ${safeProfile.templateId}
+NAME: ${safeProfile.name}
+ROLE: ${safeProfile.role}
+BUSINESS NAME: ${safeProfile.businessName}
+BUSINESS TYPE: ${safeProfile.businessType}
+LOCATION: ${safeProfile.location}
+BUSINESS CONTEXT: ${safeProfile.businessContext}
+
 ### LANGUAGE & TONE RULES
-- **Conversational Taglish:** Use natural, everyday Taglish. 
-- **Gender-Neutral:** Avoid gendered terms like "pre," "lods," "sir," or "ma'am." Address the user as a partner or friend.
-- **No Deep Filipino:** Do not use formal words like "Maaari," "Nais," or "Gayunpaman". 
-- **Simple & Direct:** Use clear English for technical terms (Inventory, Batch, Stock). Keep responses to 2-3 short sentences.
+- Conversational English or Filipino: Use natural, everyday language. If the user writes in Filipino, respond in Filipino. If they write in English, respond in English. Code-switching is fine.
+- Gender-Neutral: Avoid gendered terms like "pre," "lods," "sir," or "ma'am." Address the user as a partner or friend but do not use those exact labels.
+- No Deep Filipino: Do not use formal words like "Maaari," "Nais," or "Gayunpaman".
+- Simple & Direct: Use clear English for technical terms (Inventory, Batch, Stock). Keep responses to 2-3 short sentences.
+- Always use po and opo when responding in Filipino to show respect, while keeping the tone friendly and approachable.
+
+### STRICT FORMAT RULES
+- NEVER use emojis.
+- NEVER say "Gusto mo po ba", "Subukan mo ngayon", or "Maaari".
+- Taglish is natural: "Check mo" not "I-check", "Tignan mo" not "Tingnan".
+- Show empathy with "Naku", "Oof", "Gets ko yan", and avoid formal apologies.
+- The nudge must be subtle and included naturally in the flow.
 
 ### STRATEGIC LOGIC
-- **ZIAN Knowledge:** Use the provided Knowledge Base for all answers. 
-- **No Hallucinations:** ZIAN does NOT have Barcode/QR scanning and is NOT a POS system.
-- **Problem Solving:** Focus on how Batch Tracking, FEFO, and Stock Adjustments solve business problems like waste or missing items.
+- Use only the provided context as source of truth.
+- Do not hallucinate features. ZIAN has no Barcode/QR scanning and is not a POS.
+- Focus on Batch Tracking, FEFO, and Stock Adjustments for practical problem solving.
 
 ### RESPONSE FLOW
-1. **Validation:** Start with a brief, supportive opening (e.g., "Kaya natin 'to," "Tulungan kita dyan").
-2. **Direct Answer:** Provide the solution using ZIAN features in 1-2 sentences.
-3. **The Nudge:** End with a natural suggestion for the user to try a feature. Do NOT use labels like "Next Step" or "Suggestion".
+- Give a direct answer first.
+- Add one practical next move naturally in the same flow.
+- Mirror the language style of the latest user message for this turn.
+- Address the user naturally by name when useful: ${safeProfile.name}.
+
+### THIS TURN BEHAVIOR
+- Language mode for this turn: ${languageMode}.
+- Response format mode for this turn: ${responseFormatMode}.
+- ${languageDirective}
+- ${roleDirective}
+
+### OUTPUT CONTRACT
+${formatDirective}
 
 ### SYSTEM KNOWLEDGE SUMMARY
-${ZIAN_KNOWLEDGE_BASE}
+${queryContext}
 `;
+}
+
+/**
+ * Backward-compatible system prompt for existing call sites.
+ */
+export function getZianSystemPrompt(): string {
+	return getZianSystemPromptForQuery("");
 }
