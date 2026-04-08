@@ -2,10 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Providers } from "@/app/providers";
 import { getBaseUrl, seoConfig } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -141,14 +140,7 @@ export default function RootLayout({
 				`}
 			</Script>
 			<body className="antialiased">
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
-					<TooltipProvider>{children}</TooltipProvider>
-				</ThemeProvider>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);
