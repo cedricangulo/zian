@@ -66,16 +66,14 @@ export function ModeToggle() {
 	return (
 		<DropdownMenu>
 			<Tooltip>
-				<TooltipTrigger
-					render={
-						<DropdownMenuTrigger
-							render={<Button variant="outline" size="icon" />}
-						/>
-					}
-				>
-					<SunIcon className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-					<MoonIcon className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-					<span className="sr-only">Toggle theme</span>
+				<TooltipTrigger asChild>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" size="icon">
+							<SunIcon className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+							<MoonIcon className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+							<span className="sr-only">Toggle theme</span>
+						</Button>
+					</DropdownMenuTrigger>
 				</TooltipTrigger>
 				<TooltipContent>
 					Toggle theme

@@ -14,15 +14,11 @@ export default function NotFound() {
 			</div>
 
 			<div className="flex gap-4">
-				<Button render={<Link href="/" />} nativeButton={false}>
-					Return Home
+				<Button asChild>
+					<Link href="/">Return Home</Link>
 				</Button>
-				<Button
-					variant="outline"
-					render={<Link href="/#features" />}
-					nativeButton={false}
-				>
-					View Features
+				<Button variant="outline" asChild>
+					<Link href="/#features">View Features</Link>
 				</Button>
 			</div>
 
