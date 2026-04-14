@@ -4,11 +4,17 @@ import type { ChatRequestPayload } from "@/features/chat/types";
 import {
 	normalizeChatProfile,
 } from "@/features/chat/profile-presets";
+import { auth } from "@clerk/nextjs/server";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+	const { userId } = await auth();
+	if (!userId) {
+		return Response.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
 	const { messages, chatProfile } = (await req.json()) as ChatRequestPayload;
 	const safeProfile = normalizeChatProfile(chatProfile);
 	const latestUserMessage = [...messages]

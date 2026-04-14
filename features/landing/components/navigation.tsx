@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { navigationItems } from "@/features/landing/data";
-import { Show } from "@clerk/nextjs";
+import { AuthLoading, Authenticated, Unauthenticated } from "convex/react";
 import { useNavigationScrollBackground } from "../hooks";
 import { cn } from "@/lib/utils";
 
@@ -32,19 +32,22 @@ export default function Navigation() {
 				</div>
 				{/* login & register of not signed in. dashboard if signed in */}
 				<div className="hidden gap-4 md:flex">
-					<Show when="signed-out">
+					<AuthLoading>
+						<div className="w-44" aria-hidden />
+					</AuthLoading>
+					<Unauthenticated>
 						<Button variant="ghost" asChild>
-							<Link href="/auth/login">Login</Link>
+							<Link href="/sign-in">Login</Link>
 						</Button>
 						<Button asChild>
-							<Link href="/auth/register">Register</Link>
+							<Link href="/sign-up">Register</Link>
 						</Button>
-					</Show>
-					<Show when="signed-in">
+					</Unauthenticated>
+					<Authenticated>
 						<Button asChild>
 							<Link href="/dashboard">Dashboard</Link>
 						</Button>
-					</Show>
+					</Authenticated>
 				</div>
 			</div>
 		</nav>
