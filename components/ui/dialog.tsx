@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { XIcon } from "lucide-react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { XIcon } from "lucide-react"
 
 function Dialog({
   ...props
@@ -74,7 +74,8 @@ function DialogContent({
               className="absolute top-2 right-2"
               size="icon-sm"
             >
-              <XIcon />
+              <XIcon
+              />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>
@@ -129,7 +130,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "cn-font-heading text-base leading-none font-medium",
+        "font-heading text-base leading-none font-medium",
         className
       )}
       {...props}

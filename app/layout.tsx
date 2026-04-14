@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Plus_Jakarta_Sans } from "next/font/google";
+import { Nunito, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/app/providers";
@@ -15,6 +15,11 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 const nunito = Nunito({
 	subsets: ["latin"],
 	variable: "--font-heading",
+});
+
+const geistMono = Geist_Mono({
+	subsets: ["latin"],
+	variable: "--font-mono",
 });
 
 // Viewport configuration (separate export required in Next.js 14+)
@@ -131,7 +136,12 @@ export default function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={cn("font-sans", plusJakartaSans.variable, nunito.variable)}
+			className={cn(
+				"font-sans",
+				plusJakartaSans.variable,
+				nunito.variable,
+				geistMono.variable,
+			)}
 			suppressHydrationWarning
 		>
 			{/* Google Analytics */}
