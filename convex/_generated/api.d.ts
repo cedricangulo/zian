@@ -8,13 +8,25 @@
  * @module
  */
 
+import type * as bootstrap from "../bootstrap.js";
+import type * as catalog from "../catalog.js";
+import type * as helpers_auth from "../helpers/auth.js";
+import type * as helpers_context from "../helpers/context.js";
+import type * as helpers_tenant from "../helpers/tenant.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  bootstrap: typeof bootstrap;
+  catalog: typeof catalog;
+  "helpers/auth": typeof helpers_auth;
+  "helpers/context": typeof helpers_context;
+  "helpers/tenant": typeof helpers_tenant;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

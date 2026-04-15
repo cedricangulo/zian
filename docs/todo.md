@@ -3,24 +3,24 @@
 Scope: Convex backend and database only. Do not start frontend work until this list is done.
 
 ## 1) Foundation
-- [ ] Define the Convex schema in `convex/schema.ts` using a Convex-friendly, mostly normalized model.
-- [ ] Add/verify `convex/auth.config.ts` for Clerk JWT auth.
-- [ ] Add shared backend helpers for tenant scoping, role checks, and safe document access.
-- [ ] Set up indexes for all high-use queries, especially FEFO batch lookup and tenant-scoped listing.
+- [x] Define the Convex schema in `convex/schema.ts` using a Convex-friendly, mostly normalized model.
+- [x] Add/verify `convex/auth.config.ts` for Clerk JWT auth.
+- [x] Add shared backend helpers for tenant scoping, role checks, and safe document access.
+- [x] Set up indexes for all high-use queries, especially FEFO batch lookup and tenant-scoped listing.
 
 ## 2) Identity and Tenancy
-- [ ] Create organization provisioning flow tied to Clerk org creation.
-- [ ] Create user profile sync for authenticated users.
-- [ ] Store and enforce `org_id` on every tenant-owned table.
-- [ ] Add organization status and archive support.
-- [ ] Add role-based access control for Super Admin, ME Owner, and ME Staff.
+- [x] Create organization provisioning flow tied to Clerk org creation.
+- [x] Create user profile sync for authenticated users.
+- [x] Store and enforce `org_id` on every tenant-owned table.
+- [x] Add organization status and archive support.
+- [x] Add role-based access control for Super Admin, ME Owner, and ME Staff.
 
 ## 3) Master Data
 - [ ] Implement supplier CRUD.
 - [ ] Implement category CRUD with parent-child support.
-- [ ] Implement product CRUD with SKU, base unit, product type, sellable flag, stock tracking, expiry tracking, and archived flag.
+- [x] Implement product CRUD with SKU, base unit, product type, sellable flag, stock tracking, expiry tracking, and archived flag.
 - [ ] Implement BOM/recipe storage for composite products.
-- [ ] Treat `products` as the single master catalog for raw materials, packaging, sellable goods, and composite items.
+- [x] Treat `products` as the single master catalog for raw materials, packaging, sellable goods, and composite items.
 
 ## 4) Inventory Intake
 - [ ] Implement batch creation for inbound stock receipts.
