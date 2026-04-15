@@ -10,6 +10,10 @@
 		"convex:once": "convex dev --once",
 		"convex:deploy": "convex deploy",
 		"convex:dashboard": "convex dashboard",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:convex": "vitest run --project convex",
+		"test:frontend": "vitest run --project frontend",
 		"format": "biome format --write .",
 		"format:check": "biome format --check .",
 		"check": "biome check --write ."
@@ -47,14 +51,17 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.2",
+		"@edge-runtime/vm": "^5.0.0",
 		"@tailwindcss/postcss": "^4",
 		"@types/jsdom": "^27.0.0",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"convex-test": "^0.0.48",
 		"eslint": "^9",
 		"eslint-config-next": "16.1.6",
 		"tailwindcss": "^4",
-		"typescript": "^5"
+		"typescript": "^5",
+		"vitest": "^4.1.2"
 	}
 }

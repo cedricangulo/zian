@@ -60,7 +60,7 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [ ] Avoid storing large nested arrays in documents; use child tables for repeating data.
 
 ## 10) Testing
-- [ ] Set up `vitest`, `convex-test`, and `@edge-runtime/vm` for Convex tests.
+- [x] Set up `vitest`, `convex-test`, and `@edge-runtime/vm` for Convex tests.
 - [ ] Write tests for auth/tenant isolation.
 - [ ] Write tests for FEFO batch deduction.
 - [ ] Write tests for BOM deduction.
