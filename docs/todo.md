@@ -3,7 +3,7 @@
 Scope: Convex backend and database only. Do not start frontend work until this list is done.
 
 ## 1) Foundation
-- [ ] Define the Convex schema in `convex/schema.ts` for all core tables.
+- [ ] Define the Convex schema in `convex/schema.ts` using a Convex-friendly, mostly normalized model.
 - [ ] Add/verify `convex/auth.config.ts` for Clerk JWT auth.
 - [ ] Add shared backend helpers for tenant scoping, role checks, and safe document access.
 - [ ] Set up indexes for all high-use queries, especially FEFO batch lookup and tenant-scoped listing.
@@ -12,14 +12,15 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [ ] Create organization provisioning flow tied to Clerk org creation.
 - [ ] Create user profile sync for authenticated users.
 - [ ] Store and enforce `org_id` on every tenant-owned table.
-- [ ] Add organization status/plan fields and archive support.
+- [ ] Add organization status and archive support.
 - [ ] Add role-based access control for Super Admin, ME Owner, and ME Staff.
 
 ## 3) Master Data
 - [ ] Implement supplier CRUD.
 - [ ] Implement category CRUD with parent-child support.
-- [ ] Implement product CRUD with SKU, base unit, stock thresholds, and archived flag.
+- [ ] Implement product CRUD with SKU, base unit, product type, sellable flag, stock tracking, expiry tracking, and archived flag.
 - [ ] Implement BOM/recipe storage for composite products.
+- [ ] Treat `products` as the single master catalog for raw materials, packaging, sellable goods, and composite items.
 
 ## 4) Inventory Intake
 - [ ] Implement batch creation for inbound stock receipts.
@@ -32,6 +33,7 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [ ] Deduct stock across batches in the correct expiry/age order.
 - [ ] Support composite item deduction through BOM recipe expansion.
 - [ ] Generate dispatch data for a physical slip with only item names, quantities, and units.
+- [ ] Make composite sales deduct ingredient stock from recipes instead of treating the finished item as a separate stock bucket.
 
 ## 6) Stock Adjustments
 - [ ] Implement manual stock adjustment mutation.
@@ -55,6 +57,7 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [ ] Block pricing, discounts, VAT, payments, and invoice generation logic.
 - [ ] Prevent cross-tenant reads and writes in every function.
 - [ ] Keep historical transactions immutable; create corrective records instead of edits.
+- [ ] Avoid storing large nested arrays in documents; use child tables for repeating data.
 
 ## 10) Testing
 - [ ] Set up `vitest`, `convex-test`, and `@edge-runtime/vm` for Convex tests.

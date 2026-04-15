@@ -3,7 +3,7 @@
 This document provides a comprehensive description of the functional and non-functional requirements for the Zian Inventory Management System. It is intended for project stakeholders, the development team, and the academic evaluation panel.
 
 ## 1.2 Project Scope
-Zian is a cloud-based, multi-tenant SaaS platform designed for micro-enterprises (Hardware stores, Cafes). Its primary objective is to manage the logistical lifecycle of stock using **FEFO (First-Expired-First-Out)** and **BOM (Bill of Materials)** logic while strictly excluding Point-of-Sale (POS) financial computations.
+Zian is a cloud-based, multi-tenant inventory platform designed for micro-enterprises (Hardware stores, Cafes). Its primary objective is to manage the logistical lifecycle of stock using **FEFO (First-Expired-First-Out)** and **BOM (Bill of Materials)** logic while strictly excluding Point-of-Sale (POS) financial computations.
 
 ## 1.3 Definitions, Acronyms, and Abbreviations
 *   **MSME:** Micro, Small, and Medium Enterprises.
@@ -25,7 +25,7 @@ The system is architecturally prohibited from:
 3.  Generating financial invoices (only logistical dispatch slips are permitted).
 
 ## 2.3 User Classes and Characteristics
-*   **Super Admin (NEUST IMO):** Responsible for tenant provisioning, subscription status, and platform-wide usage metrics.
+*   **Super Admin (NEUST IMO):** Responsible for tenant provisioning, platform-wide usage metrics, and tenant health.
 *   **ME Owner:** Tenant administrator responsible for catalog setup, staff management, and reviewing organizational audit logs and analytics.
 *   **ME Staff:** Operational user responsible for recording batch deliveries, processing dispatches, and logging stock adjustments (spoilage/damage).
 
@@ -41,9 +41,11 @@ The system is architecturally prohibited from:
 *   **FR-1.3:** The system shall allow the ME Owner to manage staff accounts and roles within their specific organization.
 
 ### 3.1.2 Catalog and Setup
-*   **FR-2.1:** The system shall allow the ME Owner to maintain a product catalog including SKUs, categories, and base units.
-*   **FR-2.2:** The system shall support a Bill of Materials (BOM) extension for composite items (e.g., Cafe recipes).
-*   **FR-2.3:** The system shall maintain a registry of suppliers linked to specific inventory batches.
+*   **FR-2.1:** The system shall allow the ME Owner to maintain a single master item catalog including SKUs, categories, and base units for all trackable items.
+*   **FR-2.2:** The system shall support item types such as raw materials, packaging, sellable items, and composite items within the same catalog.
+*   **FR-2.3:** The system shall support a Bill of Materials (BOM) or recipe builder for composite items (e.g., cafe recipes).
+*   **FR-2.4:** The system shall allow the ME Owner to create a catalog item first and then optionally assign recipe components that will be deducted when the item is consumed or sold.
+*   **FR-2.5:** The system shall maintain a registry of suppliers linked to specific inventory batches.
 
 ### 3.1.3 Inbound and Outbound Logistics
 *   **FR-3.1:** The system shall record batch arrivals including procurement cost, batch codes, and mandatory expiry dates (where applicable).
@@ -68,18 +70,66 @@ The system is architecturally prohibited from:
 
 ---
 
-# 4. Data Requirements (Logical Schema)
-The system uses an atomized, 3NF/BCNF compliant logical schema optimized for both transactional operations and subsequent analytical ingestion.
+# 4. Data Requirements
+Convex is a document-relational database. The active implementation should stay mostly normalized, use explicit document references, and add small snapshot fields only where they improve historical readability or query speed. For reference, the original 3NF logical model is kept below.
 
-### 4.1 Schema Definition
+### 4.1 Modeling Rules
+*   Store each entity in its own table.
+*   Use `Id<"table">` references instead of nested child arrays.
+*   Put `org_id` on every tenant-owned table.
+*   Use compound indexes for every important lookup path.
+*   Keep transactions and audit logs append-only.
+*   Snapshot display fields only when historical values must survive later master-data edits.
 
-| Table Name | Attributes (PK/FK and Logical Fields) |
+### 4.2 Recommended Convex Tables
+
+| Table Name | Fields |
 | :--- | :--- |
-| **organizations** | **pk** id, string clerk_org_id, string name, enum plan, enum status, timestamp created_at, timestamp updated_at, timestamp archived_at |
+| **organizations** | **pk** id, string clerk_org_id, string name, enum status, timestamp archived_at, timestamp created_at, timestamp updated_at |
 | **users** | **pk** id, **fk** org_id, string clerk_user_id, string first_name, string last_name, string email, enum role, timestamp created_at, timestamp updated_at |
 | **suppliers** | **pk** id, **fk** org_id, string name, string contact_first_name, string contact_last_name, string phone_number, timestamp created_at, timestamp updated_at |
 | **categories** | **pk** id, **fk** org_id, **fk** parent_category_id, string name, timestamp created_at, timestamp updated_at |
-| **products** | **pk** id, **fk** org_id, **fk** category_id, string sku, string name, string base_unit, boolean is_bom, float min_stock_level, timestamp created_at, timestamp updated_at, timestamp archived_at |
+| **products** | **pk** id, **fk** org_id, **fk** category_id, string sku, string name, string base_unit, enum product_type, boolean sellable, boolean stock_tracked, boolean track_expiry, boolean is_bom, float min_stock_level, timestamp archived_at, timestamp created_at, timestamp updated_at |
+| **recipes** | **pk** id, **fk** org_id, **fk** parent_product_id, **fk** ingredient_product_id, float quantity_required, timestamp created_at, timestamp updated_at |
+| **batches** | **pk** id, **fk** org_id, **fk** product_id, **fk** supplier_id, string batch_code, float cost_price, float initial_qty, float remaining_qty, timestamp expiry_date, timestamp received_at, timestamp created_at, timestamp updated_at |
+| **transactions** | **pk** id, **fk** org_id, **fk** user_id, enum movement_type, enum event_reason, timestamp created_at |
+| **transaction_items** | **pk** id, **fk** org_id, **fk** transaction_id, **fk** product_id, **fk** batch_id, string product_name_snapshot, string base_unit_snapshot, float quantity, float cost_at_event, timestamp created_at |
+| **audit_logs** | **pk** id, **fk** org_id, **fk** user_id, enum action_type, string entity_affected, string record_id, json change_log, timestamp created_at |
+
+### 4.3 Recommended Indexes
+| Table Name | Indexes |
+| :--- | :--- |
+| **organizations** | `by_clerk_org_id`, `by_status`, `by_archived_at` |
+| **users** | `by_org_id`, `by_org_id_and_role`, `by_clerk_user_id` |
+| **suppliers** | `by_org_id`, `by_org_id_and_name` |
+| **categories** | `by_org_id`, `by_org_id_and_parent_category_id`, `by_org_id_and_name` |
+| **products** | `by_org_id`, `by_org_id_and_category_id`, `by_org_id_and_sku`, `by_org_id_and_archived_at` |
+| **recipes** | `by_org_id`, `by_org_id_and_parent_product_id`, `by_org_id_and_ingredient_product_id` |
+| **batches** | `by_org_id`, `by_org_id_and_product_id`, `by_org_id_and_product_id_and_expiry_date`, `by_org_id_and_supplier_id`, `by_org_id_and_batch_code` |
+| **transactions** | `by_org_id`, `by_org_id_and_user_id`, `by_org_id_and_created_at`, `by_org_id_and_movement_type` |
+| **transaction_items** | `by_org_id`, `by_org_id_and_transaction_id`, `by_org_id_and_product_id`, `by_org_id_and_batch_id` |
+| **audit_logs** | `by_org_id`, `by_org_id_and_user_id`, `by_org_id_and_created_at`, `by_org_id_and_entity_affected` |
+
+### 4.4 Convex Notes
+*   `transaction_items` should carry lightweight snapshots such as product name and unit so historical slips stay readable after catalog edits.
+*   `batches` should remain the source of truth for remaining stock and FEFO selection.
+*   `recipes` should represent one ingredient per row, not an embedded ingredient list.
+*   `audit_logs` must be append-only and never updated in place.
+*   Any query that lists tenant data must filter by `org_id` and use an index.
+*   The `products` table is the single master catalog for all trackable items, including raw materials, packaging, sellable goods, and composite items.
+*   Composite products may be created first and then assigned recipe lines later through `recipes`.
+*   Selling or consuming a composite product should deduct stock from its ingredient rows, not from a separate finished-goods inventory bucket.
+
+> **Note:** This section is for reference only. The active implementation target is the Convex schema in sections 4.1–4.4.
+
+### 4.5 Legacy 3NF Reference
+| Table Name | Attributes (PK/FK and Logical Fields) |
+| :--- | :--- |
+| **organizations** | **pk** id, string clerk_org_id, string name, enum status, timestamp created_at, timestamp updated_at, timestamp archived_at |
+| **users** | **pk** id, **fk** org_id, string clerk_user_id, string first_name, string last_name, string email, enum role, timestamp created_at, timestamp updated_at |
+| **suppliers** | **pk** id, **fk** org_id, string name, string contact_first_name, string contact_last_name, string phone_number, timestamp created_at, timestamp updated_at |
+| **categories** | **pk** id, **fk** org_id, **fk** parent_category_id, string name, timestamp created_at, timestamp updated_at |
+| **products** | **pk** id, **fk** org_id, **fk** category_id, string sku, string name, string base_unit, enum product_type, boolean sellable, boolean stock_tracked, boolean track_expiry, boolean is_bom, float min_stock_level, timestamp created_at, timestamp updated_at, timestamp archived_at |
 | **recipes** | **pk** id, **fk** org_id, **fk** parent_product_id, **fk** ingredient_product_id, float quantity_required, timestamp created_at, timestamp updated_at |
 | **batches** | **pk** id, **fk** org_id, **fk** product_id, **fk** supplier_id, string batch_code, float cost_price, float initial_qty, float remaining_qty, timestamp expiry_date, timestamp received_at, timestamp created_at, timestamp updated_at |
 | **transactions** | **pk** id, **fk** org_id, **fk** user_id, enum movement_type, enum event_reason, timestamp created_at |
