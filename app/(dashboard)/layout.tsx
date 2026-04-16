@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 import {
 	SidebarInset,
@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 		<SidebarProvider defaultOpen>
 			<AppSidebar />
 			<SidebarInset>
-				<header className="flex justify-between items-center h-16 gap-2 shrink-0 p-6">
+				<header className="flex items-center justify-between h-16 gap-2 p-6 pb-0 shrink-0">
 					{/* <SidebarTrigger /> */}
 					{/* <Separator orientation="vertical" className="h-4" /> */}
 					<div className="flex items-center gap-2">
@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 						<Bell />
 					</Button>
 				</header>
-				<div className="flex flex-col flex-1">{children}</div>
+				<div className="flex flex-col flex-1 gap-6 p-6">{children}</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

@@ -14,6 +14,7 @@ import {
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarHeader,
@@ -22,6 +23,7 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "@/components/ui/sidebar";
+import { NavUser } from "./nav-user";
 
 type NavItem = {
 	title: string;
@@ -44,9 +46,11 @@ export function AppSidebar() {
 	return (
 		<Sidebar collapsible="icon">
 			<SidebarHeader>
-				<div className="flex flex-col gap-0.5 px-1 py-1">
-					<p className="text-sm font-semibold leading-none">ZIAN</p>
-				</div>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<p className="text-sm font-semibold leading-none">ZIAN</p>
+					</SidebarMenuItem>
+				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
@@ -76,6 +80,9 @@ export function AppSidebar() {
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
+			<SidebarFooter>
+				<NavUser />
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);

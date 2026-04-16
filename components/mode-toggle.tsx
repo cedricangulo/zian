@@ -19,6 +19,22 @@ import {
 } from "@/components/ui/tooltip";
 import { Kbd } from "./ui/kbd";
 
+export function ThemeMenuItem() {
+	const { setTheme, resolvedTheme } = useTheme();
+
+	const toggleTheme = React.useCallback(() => {
+		setTheme(resolvedTheme === "dark" ? "light" : "dark");
+	}, [resolvedTheme, setTheme]);
+
+	return (
+		<DropdownMenuItem onClick={toggleTheme}>
+			<SunIcon className="dark:hidden" />
+			<MoonIcon className="hidden dark:block" />
+			Theme
+		</DropdownMenuItem>
+	);
+}
+
 export function ModeToggle() {
 	const { setTheme, resolvedTheme } = useTheme();
 
