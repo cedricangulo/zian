@@ -137,7 +137,8 @@ export const updateProduct = mutation({
 		await ensureUniqueSku(ctx, organization._id, args.sku, args.product_id);
 
 		await ctx.db.patch(args.product_id, {
-			category_id: args.category_id,
+			category_id:
+				args.category_id === null ? undefined : args.category_id,
 			sku: args.sku,
 			name: args.name,
 			base_unit: args.base_unit,

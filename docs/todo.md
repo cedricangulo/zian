@@ -23,10 +23,11 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Treat `products` as the single master catalog for raw materials, packaging, sellable goods, and composite items.
 
 ## 4) Inventory Intake
-- [ ] Implement batch creation for inbound stock receipts.
-- [ ] Store procurement cost, batch code, expiry date, received date, supplier, and quantities.
-- [ ] Validate required expiry dates where applicable.
-- [ ] Record inbound transactions and transaction items immutably.
+- [x] Implement batch creation for inbound stock receipts.
+- [x] Store procurement cost, batch code, expiry date, received date, supplier, and quantities.
+- [x] Validate required expiry dates where applicable.
+- [x] Record inbound transactions and transaction items immutably.
+
 
 ## 5) Dispatch and FEFO
 - [ ] Implement FEFO batch selection logic.
@@ -61,14 +62,16 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 
 ## 10) Testing
 - [x] Set up `vitest`, `convex-test`, and `@edge-runtime/vm` for Convex tests.
-- [ ] Write tests for auth/tenant isolation.
+- [x] Write tests for auth/tenant isolation.
+- [x] Write tests for master data CRUD and hierarchy rules.
+- [x] Write tests for BOM deduction.
+- [x] Write tests for inventory intake and immutable receipt history.
 - [ ] Write tests for FEFO batch deduction.
-- [ ] Write tests for BOM deduction.
 - [ ] Write tests for stock adjustments and audit logs.
 - [ ] Write tests for dashboard queries and bounded results.
 
 ## 11) Backend Delivery
-- [ ] Run backend tests and fix failures.
+- [x] Run backend tests and fix failures.
 - [ ] Review schema and indexes for performance and integrity.
 - [ ] Document backend APIs and function names for the frontend team.
 
