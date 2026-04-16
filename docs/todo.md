@@ -16,10 +16,10 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Add role-based access control for Super Admin, ME Owner, and ME Staff.
 
 ## 3) Master Data
-- [ ] Implement supplier CRUD.
-- [ ] Implement category CRUD with parent-child support.
+- [x] Implement supplier CRUD.
+- [x] Implement category CRUD with parent-child support.
 - [x] Implement product CRUD with SKU, base unit, product type, sellable flag, stock tracking, expiry tracking, and archived flag.
-- [ ] Implement BOM/recipe storage for composite products.
+- [x] Implement BOM/recipe storage for composite products.
 - [x] Treat `products` as the single master catalog for raw materials, packaging, sellable goods, and composite items.
 
 ## 4) Inventory Intake

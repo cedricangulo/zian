@@ -10,9 +10,12 @@
 
 import type * as bootstrap from "../bootstrap.js";
 import type * as catalog from "../catalog.js";
+import type * as categories from "../categories.js";
 import type * as helpers_auth from "../helpers/auth.js";
 import type * as helpers_context from "../helpers/context.js";
 import type * as helpers_tenant from "../helpers/tenant.js";
+import type * as recipes from "../recipes.js";
+import type * as suppliers from "../suppliers.js";
 
 import type {
   ApiFromModules,
@@ -23,9 +26,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   bootstrap: typeof bootstrap;
   catalog: typeof catalog;
+  categories: typeof categories;
   "helpers/auth": typeof helpers_auth;
   "helpers/context": typeof helpers_context;
   "helpers/tenant": typeof helpers_tenant;
+  recipes: typeof recipes;
+  suppliers: typeof suppliers;
 }>;
 
 /**
