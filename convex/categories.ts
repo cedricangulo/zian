@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx } from "./_generated/server";
+import { computeDelta, writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
 async function ensureNoParentCategoryCycle(
@@ -104,7 +105,7 @@ export const createCategory = mutation({
 		parent_category_id: v.optional(v.id("categories")),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		if (args.parent_category_id) {
 			const parentCategory = await ctx.db.get(args.parent_category_id);
@@ -113,11 +114,22 @@ export const createCategory = mutation({
 			}
 		}
 
-		return await ctx.db.insert("categories", {
+		const categoryId = await ctx.db.insert("categories", {
 			org_id: organization._id,
 			name: args.name,
 			parent_category_id: args.parent_category_id,
 		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "categories",
+			recordId: categoryId,
+			changeLog: { next: { name: args.name, parent_category_id: args.parent_category_id } },
+		});
+
+		return categoryId;
 	},
 });
 
@@ -128,7 +140,7 @@ export const updateCategory = mutation({
 		parent_category_id: v.union(v.id("categories"), v.null()),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		const category = await ctx.db.get(args.category_id);
 		if (!category || category.org_id !== organization._id) {
@@ -148,11 +160,23 @@ export const updateCategory = mutation({
 			);
 		}
 
-		await ctx.db.patch(args.category_id, {
+		const patchData = {
 			name: args.name,
 			parent_category_id:
 				args.parent_category_id === null ? undefined : args.parent_category_id,
-		});
+		};
+		const delta = computeDelta(category as Record<string, unknown>, patchData);
+		await ctx.db.patch(args.category_id, patchData);
+		if (delta) {
+			await writeAuditLog(ctx, {
+				orgId: organization._id,
+				userId: user._id,
+				actionType: "update",
+				entityAffected: "categories",
+				recordId: args.category_id,
+				changeLog: delta,
+			});
+		}
 
 		return args.category_id;
 	},

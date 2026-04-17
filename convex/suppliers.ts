@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx } from "./_generated/server";
+import { computeDelta, writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
 async function deleteSupplierRecord(
@@ -64,14 +65,23 @@ export const createSupplier = mutation({
 		phone_number: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
-		return await ctx.db.insert("suppliers", {
+		const { organization, user } = await requireOwnerContext(ctx);
+		const supplierId = await ctx.db.insert("suppliers", {
 			org_id: organization._id,
 			name: args.name,
 			contact_first_name: args.contact_first_name,
 			contact_last_name: args.contact_last_name,
 			phone_number: args.phone_number,
 		});
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "suppliers",
+			recordId: supplierId,
+			changeLog: { next: { name: args.name } },
+		});
+		return supplierId;
 	},
 });
 
@@ -84,18 +94,30 @@ export const updateSupplier = mutation({
 		phone_number: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 		const supplier = await ctx.db.get(args.supplier_id);
 		if (!supplier || supplier.org_id !== organization._id) {
 			throw new Error("Supplier not found in your organization");
 		}
 
-		await ctx.db.patch(args.supplier_id, {
+		const patchData = {
 			name: args.name,
 			contact_first_name: args.contact_first_name,
 			contact_last_name: args.contact_last_name,
 			phone_number: args.phone_number,
-		});
+		};
+		const delta = computeDelta(supplier as Record<string, unknown>, patchData);
+		await ctx.db.patch(args.supplier_id, patchData);
+		if (delta) {
+			await writeAuditLog(ctx, {
+				orgId: organization._id,
+				userId: user._id,
+				actionType: "update",
+				entityAffected: "suppliers",
+				recordId: args.supplier_id,
+				changeLog: delta,
+			});
+		}
 
 		return args.supplier_id;
 	},

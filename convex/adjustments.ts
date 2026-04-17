@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext } from "./helpers/context";
 
 const adjustmentReason = v.union(
@@ -72,6 +73,18 @@ export const createAdjustment = mutation({
 			quantity: delta,
 			cost_at_event: batch.cost_price,
 			created_at: eventTime,
+		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "adjust",
+			entityAffected: "batches",
+			recordId: args.batch_id,
+			changeLog: {
+				previous: { remaining_qty: batch.remaining_qty },
+				next: { remaining_qty: args.adjusted_qty, reason: args.reason },
+			},
 		});
 
 		return {

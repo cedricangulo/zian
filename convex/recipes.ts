@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx } from "./_generated/server";
+import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
 const MAX_RECIPE_LINES = 200;
@@ -136,7 +137,7 @@ export const addRecipeLine = mutation({
 		quantity_required: v.number(),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		if (args.parent_product_id === args.ingredient_product_id) {
 			throw new Error(
@@ -182,12 +183,29 @@ export const addRecipeLine = mutation({
 			new Map<Id<"products">, Id<"products">[]>(),
 		);
 
-		return await ctx.db.insert("recipes", {
+		const recipeId = await ctx.db.insert("recipes", {
 			org_id: organization._id,
 			parent_product_id: args.parent_product_id,
 			ingredient_product_id: args.ingredient_product_id,
 			quantity_required: args.quantity_required,
 		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "recipes",
+			recordId: recipeId,
+			changeLog: {
+				next: {
+					parent_product_id: args.parent_product_id,
+					ingredient_product_id: args.ingredient_product_id,
+					quantity_required: args.quantity_required,
+				},
+			},
+		});
+
+		return recipeId;
 	},
 });
 
@@ -197,7 +215,7 @@ export const updateRecipeLine = mutation({
 		quantity_required: v.number(),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		ensurePositiveQuantity(args.quantity_required);
 
@@ -210,6 +228,18 @@ export const updateRecipeLine = mutation({
 			quantity_required: args.quantity_required,
 		});
 
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "update",
+			entityAffected: "recipes",
+			recordId: args.recipe_id,
+			changeLog: {
+				previous: { quantity_required: recipe.quantity_required },
+				next: { quantity_required: args.quantity_required },
+			},
+		});
+
 		return args.recipe_id;
 	},
 });
@@ -219,7 +249,7 @@ export const removeRecipeLine = mutation({
 		recipe_id: v.id("recipes"),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		const recipe = await ctx.db.get(args.recipe_id);
 		if (!recipe || recipe.org_id !== organization._id) {
@@ -227,6 +257,22 @@ export const removeRecipeLine = mutation({
 		}
 
 		await ctx.db.delete(args.recipe_id);
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "delete",
+			entityAffected: "recipes",
+			recordId: args.recipe_id,
+			changeLog: {
+				previous: {
+					parent_product_id: recipe.parent_product_id,
+					ingredient_product_id: recipe.ingredient_product_id,
+					quantity_required: recipe.quantity_required,
+				},
+			},
+		});
+
 		return args.recipe_id;
 	},
 });

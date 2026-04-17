@@ -43,9 +43,9 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Keep adjustment history immutable and traceable.
 
 ## 7) Audit and History
-- [ ] Write audit log entries for every mutation that changes business data.
-- [ ] Ensure audit logs are append-only.
-- [ ] Add queries for owner/admin audit history views.
+- [x] Write audit log entries for every mutation that changes business data.
+- [x] Ensure audit logs are append-only.
+- [x] Add queries for owner/admin audit history views.
 
 ## 8) Analytics and Dashboards
 - [ ] Add backend queries for asset valuation at cost.
