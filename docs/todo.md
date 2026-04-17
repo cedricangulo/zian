@@ -30,11 +30,11 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 
 
 ## 5) Dispatch and FEFO
-- [ ] Implement FEFO batch selection logic.
-- [ ] Deduct stock across batches in the correct expiry/age order.
-- [ ] Support composite item deduction through BOM recipe expansion.
-- [ ] Generate dispatch data for a physical slip with only item names, quantities, and units.
-- [ ] Make composite sales deduct ingredient stock from recipes instead of treating the finished item as a separate stock bucket.
+- [x] Implement FEFO batch selection logic.
+- [x] Deduct stock across batches in the correct expiry/age order.
+- [x] Support composite item deduction through BOM recipe expansion.
+- [x] Generate dispatch data for a physical slip with only item names, quantities, and units.
+- [x] Make composite sales deduct ingredient stock from recipes instead of treating the finished item as a separate stock bucket.
 
 ## 6) Stock Adjustments
 - [ ] Implement manual stock adjustment mutation.

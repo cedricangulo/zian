@@ -1,13 +1,20 @@
 import { convexTest } from "convex-test";
+import { test } from "vitest";
 import type { UserIdentity } from "convex/server";
 import type { Id } from "./_generated/dataModel";
 import schema from "./schema";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const modules = (import.meta as any).glob("./**/*.ts");
+
 type OrgRoleClaim = "admin" | "owner" | "member";
 type AppUserRole = "super_admin" | "owner" | "staff";
 
+// Dummy test so vitest doesn't complain about no test suite found
+test.skip("utils", () => {});
+
 export function createTestBackend() {
-	return convexTest(schema);
+	return convexTest(schema, modules);
 }
 
 type SeedOrganizationOptions = {
