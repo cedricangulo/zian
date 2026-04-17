@@ -1,0 +1,1 @@
+export { AddProductDialogButton } from "./components/add-product-dialog-button";
