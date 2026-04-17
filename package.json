@@ -19,6 +19,7 @@
 		"check": "biome check --write ."
 	},
 	"dependencies": {
+		"@base-ui/react": "^1.4.0",
 		"@clerk/nextjs": "^7.0.11",
 		"@streamdown/cjk": "^1.0.2",
 		"@streamdown/code": "^1.1.0",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { Plus } from "lucide-react";
 
@@ -12,17 +12,43 @@ import {
 } from "@/components/ui/dialog";
 
 import { AddStockDialogContent } from "./add-stock-dialog-content";
+import { DiscardChangesDialog } from "./discard-changes-dialog";
 import { useAddStockDialogState } from "../../hooks";
 
 export function AddStockDialogButton() {
 	const [open, setOpen] = useState(false);
+	const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+	const closeBypassRef = useRef(false);
 	const dialogState = useAddStockDialogState({
-		onSave: () => setOpen(false),
+		onSave: () => {
+			closeBypassRef.current = true;
+			setDiscardDialogOpen(false);
+			setOpen(false);
+		},
 	});
+
+	const closeDialog = useCallback(() => {
+		closeBypassRef.current = true;
+		setDiscardDialogOpen(false);
+		setOpen(false);
+	}, []);
 
 	const handleOpenChange = (nextOpen: boolean) => {
 		if (nextOpen) {
 			dialogState.resetDialogState();
+			setDiscardDialogOpen(false);
+		}
+
+		if (!nextOpen && closeBypassRef.current) {
+			closeBypassRef.current = false;
+			setDiscardDialogOpen(false);
+			setOpen(false);
+			return;
+		}
+
+		if (!nextOpen && dialogState.hasUnsavedChanges) {
+			setDiscardDialogOpen(true);
+			return;
 		}
 
 		setOpen(nextOpen);
@@ -44,6 +70,13 @@ export function AddStockDialogButton() {
 			>
 				<AddStockDialogContent {...dialogState} />
 			</DialogContent>
+			<DiscardChangesDialog
+				open={discardDialogOpen}
+				onOpenChange={(nextOpen) => {
+					setDiscardDialogOpen(nextOpen);
+				}}
+				onDiscard={closeDialog}
+			/>
 		</Dialog>
 	);
 }

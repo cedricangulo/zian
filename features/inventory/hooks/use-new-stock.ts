@@ -1,26 +1,14 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { type Control, useWatch } from "react-hook-form";
 
+import {
+	newStockCategoryOptions,
+	newStockSupplierOptions,
+	newStockUnitOptions,
+} from "../data/form-options";
 import type { NewStockDraft } from "../types";
-
-const DEFAULT_CATEGORY_OPTIONS = [
-	"Beans",
-	"Milk",
-	"Packaging",
-	"Syrups",
-	"Ingredients",
-];
-
-const DEFAULT_UNIT_OPTIONS = ["pcs", "kg", "g", "L", "mL", "pack"];
-
-const DEFAULT_SUPPLIER_OPTIONS = [
-	"Bean Source Trading",
-	"Daily Dairy Supply",
-	"Packline Distributors",
-	"Northside Ingredients",
-];
 
 export function normalizeNewStockDraft(
 	input: Partial<NewStockDraft> | undefined,
@@ -61,18 +49,6 @@ export function useNewStockFormState({
 	const expiryDate = useWatch({ control, name: "expiryDate" });
 	const totalAssetValue = useWatch({ control, name: "totalAssetValue" });
 
-	const categoryOptions = useMemo(() => {
-		return DEFAULT_CATEGORY_OPTIONS;
-	}, []);
-
-	const unitOptions = useMemo(() => {
-		return DEFAULT_UNIT_OPTIONS;
-	}, []);
-
-	const supplierOptions = useMemo(() => {
-		return DEFAULT_SUPPLIER_OPTIONS;
-	}, []);
-
 	useEffect(() => {
 		onChange(
 			normalizeNewStockDraft({
@@ -105,9 +81,9 @@ export function useNewStockFormState({
 	]);
 
 	return {
-		categoryOptions,
-		unitOptions,
-		supplierOptions,
+		categoryOptions: newStockCategoryOptions,
+		unitOptions: newStockUnitOptions,
+		supplierOptions: newStockSupplierOptions,
 		hasExpiryDate,
 		itemImageName,
 		selectedUnit: unit,

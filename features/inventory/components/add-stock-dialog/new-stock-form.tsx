@@ -21,6 +21,11 @@ import {
 	InputGroupInput,
 	InputGroupText,
 } from "@/components/ui/input-group";
+import { Switch } from "@/components/ui/switch";
+
+import { InventoryOptionCombobox } from "./inventory-option-combobox";
+import type { NewStockDraft } from "../../types";
+import { normalizeNewStockDraft, useNewStockFormState } from "../../hooks";
 import {
 	Select,
 	SelectContent,
@@ -29,10 +34,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-
-import type { NewStockDraft } from "../../types";
-import { normalizeNewStockDraft, useNewStockFormState } from "../../hooks";
 interface NewStockFormProps {
 	value: NewStockDraft;
 	onBack: () => void;
@@ -50,6 +51,7 @@ export function NewStockForm({
 		control,
 		formState: { errors },
 		handleSubmit,
+		clearErrors,
 		register,
 		setValue,
 	} = useForm<NewStockDraft>({
@@ -138,24 +140,14 @@ export function NewStockForm({
 									name="category"
 									rules={{ required: "Category is required." }}
 									render={({ field }) => (
-										<Select onValueChange={field.onChange} value={field.value}>
-											<SelectTrigger
-												id="new-item-category"
-												className="w-full"
-												aria-invalid={Boolean(errors.category) || undefined}
-											>
-												<SelectValue placeholder="Select category" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectGroup>
-													{categoryOptions.map((option) => (
-														<SelectItem key={option} value={option}>
-															{option}
-														</SelectItem>
-													))}
-												</SelectGroup>
-											</SelectContent>
-										</Select>
+										<InventoryOptionCombobox
+											ariaInvalid={Boolean(errors.category) || undefined}
+											id="new-item-category"
+											onValueChange={field.onChange}
+											options={categoryOptions}
+											placeholder="Select category"
+											value={field.value}
+										/>
 									)}
 								/>
 								<FieldError
@@ -170,24 +162,14 @@ export function NewStockForm({
 									name="unit"
 									rules={{ required: "Unit is required." }}
 									render={({ field }) => (
-										<Select onValueChange={field.onChange} value={field.value}>
-											<SelectTrigger
-												id="new-item-unit"
-												className="w-full"
-												aria-invalid={Boolean(errors.unit) || undefined}
-											>
-												<SelectValue placeholder="Select unit" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectGroup>
-													{unitOptions.map((option) => (
-														<SelectItem key={option} value={option}>
-															{option}
-														</SelectItem>
-													))}
-												</SelectGroup>
-											</SelectContent>
-										</Select>
+										<InventoryOptionCombobox
+											ariaInvalid={Boolean(errors.unit) || undefined}
+											id="new-item-unit"
+											onValueChange={field.onChange}
+											options={unitOptions}
+											placeholder="Select unit"
+											value={field.value}
+										/>
 									)}
 								/>
 								<FieldError errors={errors.unit ? [errors.unit] : undefined} />
@@ -309,8 +291,9 @@ export function NewStockForm({
 													if (!checked) {
 														setValue("expiryDate", "", {
 															shouldDirty: true,
-															shouldValidate: true,
+															shouldValidate: false,
 														});
+														clearErrors("expiryDate");
 													}
 												}}
 											/>
@@ -324,9 +307,9 @@ export function NewStockForm({
 										(hasExpiryDate && Boolean(errors.expiryDate)) || undefined
 									}
 								>
-									<FieldLabel htmlFor="new-item-expiry-date">
+									{/* <FieldLabel htmlFor="new-item-expiry-date">
 										Expiry date
-									</FieldLabel>
+									</FieldLabel> */}
 									<Input
 										id="new-item-expiry-date"
 										type="date"
