@@ -37,10 +37,10 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Make composite sales deduct ingredient stock from recipes instead of treating the finished item as a separate stock bucket.
 
 ## 6) Stock Adjustments
-- [ ] Implement manual stock adjustment mutation.
-- [ ] Require a reason code for every adjustment.
-- [ ] Support spoilage, theft, damage, and correction reasons.
-- [ ] Keep adjustment history immutable and traceable.
+- [x] Implement manual stock adjustment mutation.
+- [x] Require a reason code for every adjustment.
+- [x] Support spoilage, theft, damage, and correction reasons.
+- [x] Keep adjustment history immutable and traceable.
 
 ## 7) Audit and History
 - [ ] Write audit log entries for every mutation that changes business data.
@@ -66,8 +66,8 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Write tests for master data CRUD and hierarchy rules.
 - [x] Write tests for BOM deduction.
 - [x] Write tests for inventory intake and immutable receipt history.
-- [ ] Write tests for FEFO batch deduction.
-- [ ] Write tests for stock adjustments and audit logs.
+- [x] Write tests for FEFO batch deduction.
+- [x] Write tests for stock adjustments and audit logs.
 - [ ] Write tests for dashboard queries and bounded results.
 
 ## 11) Backend Delivery

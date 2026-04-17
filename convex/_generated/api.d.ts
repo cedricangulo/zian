@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as adjustments from "../adjustments.js";
 import type * as bootstrap from "../bootstrap.js";
 import type * as catalog from "../catalog.js";
 import type * as categories from "../categories.js";
@@ -26,6 +27,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  adjustments: typeof adjustments;
   bootstrap: typeof bootstrap;
   catalog: typeof catalog;
   categories: typeof categories;
