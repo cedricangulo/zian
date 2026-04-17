@@ -11,6 +11,9 @@ importers:
       '@clerk/nextjs':
         specifier: ^7.0.11
         version: 7.0.11(next@16.2.2(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-use-controllable-state':
+        specifier: ^1.2.2
+        version: 1.2.2(@types/react@19.2.14)(react@19.2.3)
       '@streamdown/cjk':
         specifier: ^1.0.2
         version: 1.0.2(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@19.2.3)(unified@11.0.5)
@@ -47,9 +50,6 @@ importers:
       lucide-react:
         specifier: ^0.572.0
         version: 0.572.0(react@19.2.3)
-      mesurer:
-        specifier: ^0.0.3
-        version: 0.0.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       motion:
         specifier: ^12.35.1
         version: 12.35.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -4200,12 +4200,6 @@ packages:
 
   mermaid@11.12.3:
     resolution: {integrity: sha512-wN5ZSgJQIC+CHJut9xaKWsknLxaFBwCPwPkGTSUYrTiHORWvpT8RxGk849HPnpUAQ+/9BPRqYb80jTpearrHzQ==}
-
-  mesurer@0.0.3:
-    resolution: {integrity: sha512-FS+kl0gABX73vAM2ayUGYFzXmExYIGWUVKv2hK0YFb1WKv0XURGEzO017pn7T05NMpo0BMd/3HMYqp9W/rMzXg==}
-    peerDependencies:
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
 
   micromark-core-commonmark@2.0.3:
     resolution: {integrity: sha512-RDBrHEMSxVFLg6xvnXmb1Ayr2WzLAWjeSATAoxwKYJV94TeNavgoIdA0a9ytzDSVzBy2YKFK+emCPOEibLeCrg==}
@@ -9918,11 +9912,6 @@ snapshots:
       stylis: 4.3.6
       ts-dedent: 2.2.0
       uuid: 11.1.0
-
-  mesurer@0.0.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
-    dependencies:
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
 
   micromark-core-commonmark@2.0.3:
     dependencies:

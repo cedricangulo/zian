@@ -5,7 +5,6 @@ import "./globals.css";
 import { Providers } from "@/app/providers";
 import { getBaseUrl, seoConfig } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import MeasurerWrapper from "@/components/mesurer";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
 	subsets: ["latin"],
@@ -160,7 +159,6 @@ export default function RootLayout({
 			</Script>
 			<body className="antialiased">
 				<Providers>
-					<MeasurerWrapper />
 					{children}
 				</Providers>
 			</body>

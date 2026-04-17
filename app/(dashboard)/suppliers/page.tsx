@@ -1,8 +1,13 @@
+import { DashboardShell } from "@/features/dashboard";
+import { AddSupplierDialogButton } from "@/features/suppliers";
+
 export default function SuppliersPage() {
 	return (
-		<div className="space-y-2">
-			<h2 className="text-2xl font-semibold tracking-tight">Suppliers</h2>
-			<p className="text-muted-foreground">Supplier registry goes here.</p>
-		</div>
+		<DashboardShell
+			title={<h2 className="type-lg">Suppliers</h2>}
+			action={<AddSupplierDialogButton />}
+		>
+			<div />
+		</DashboardShell>
 	);
 }
