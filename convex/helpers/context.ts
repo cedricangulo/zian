@@ -57,6 +57,16 @@ export async function requireOwnerContext(
 	return current;
 }
 
+export async function requireSuperAdminContext(
+	ctx: QueryCtx | MutationCtx,
+): Promise<CurrentContext> {
+	const current = await requireCurrentContext(ctx);
+	if (current.user.role !== "super_admin") {
+		throw new Error("Unauthorized");
+	}
+	return current;
+}
+
 export function ensureOrgScopedId<T extends TableNames>(id: Id<T>) {
 	return id;
 }

@@ -48,10 +48,10 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Add queries for owner/admin audit history views.
 
 ## 8) Analytics and Dashboards
-- [ ] Add backend queries for asset valuation at cost.
-- [ ] Add backend queries for dead stock analysis.
-- [ ] Add platform usage and tenant health queries for Super Admin.
-- [ ] Keep analytics queries tenant-safe and bounded.
+- [x] Add backend queries for asset valuation at cost.
+- [x] Add backend queries for dead stock analysis.
+- [x] Add platform usage and tenant health queries for Super Admin.
+- [x] Keep analytics queries tenant-safe and bounded.
 
 ## 9) Safety and Constraints
 - [ ] Enforce the "no POS" rule in backend code paths.

@@ -9,6 +9,8 @@
  */
 
 import type * as adjustments from "../adjustments.js";
+import type * as admin from "../admin.js";
+import type * as analytics from "../analytics.js";
 import type * as audit from "../audit.js";
 import type * as bootstrap from "../bootstrap.js";
 import type * as catalog from "../catalog.js";
@@ -30,6 +32,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   adjustments: typeof adjustments;
+  admin: typeof admin;
+  analytics: typeof analytics;
   audit: typeof audit;
   bootstrap: typeof bootstrap;
   catalog: typeof catalog;
