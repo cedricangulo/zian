@@ -98,13 +98,13 @@ export const getDeadStock = query({
 		const batchLimit = Math.min(args.limit ?? 200, 500);
 		const cutoffMs = Date.now() - threshold * 24 * 60 * 60 * 1000;
 
-		// Fetch all batches ordered by received_at ascending (oldest first).
-		// Guidelines: use withIndex, not filter on queries.
-		// We use by_org_id and filter in-memory for remaining_qty and received_at
-		// because we have no compound index for this specific combination.
+		// Fetch batches ordered by received_at ascending so the oldest stock is
+		// evaluated first.
 		const batches = await ctx.db
 			.query("batches")
-			.withIndex("by_org_id", (q) => q.eq("org_id", organization._id))
+			.withIndex("by_org_id_and_received_at", (q) =>
+				q.eq("org_id", organization._id),
+			)
 			.order("asc")
 			.take(1000);
 

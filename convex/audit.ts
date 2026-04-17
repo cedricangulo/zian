@@ -54,17 +54,13 @@ export const getAuditLogsByRecord = query({
 
 		const logs = await ctx.db
 			.query("audit_logs")
-			.withIndex("by_org_id_and_created_at", (q) =>
-				q.eq("org_id", organization._id),
+				.withIndex("by_org_id_and_record_id", (q) =>
+					q.eq("org_id", organization._id).eq("record_id", args.record_id),
 			)
 			.order("desc")
-			.take(500);
+				.take(limit);
 
-		const filtered = logs
-			.filter((log) => log.record_id === args.record_id)
-			.slice(0, limit);
-
-		return await enrichWithUserNames(ctx, filtered);
+			return await enrichWithUserNames(ctx, logs);
 	},
 });
 

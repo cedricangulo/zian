@@ -147,6 +147,7 @@ export default defineSchema({
 			"product_id",
 			"expiry_date",
 		])
+		.index("by_org_id_and_received_at", ["org_id", "received_at"])
 		.index("by_org_id_and_supplier_id", ["org_id", "supplier_id"])
 		.index("by_org_id_and_batch_code", ["org_id", "batch_code"]),
 
@@ -191,5 +192,6 @@ export default defineSchema({
 		.index("by_org_id", ["org_id"])
 		.index("by_org_id_and_user_id", ["org_id", "user_id"])
 		.index("by_org_id_and_created_at", ["org_id", "created_at"])
+		.index("by_org_id_and_record_id", ["org_id", "record_id"])
 		.index("by_org_id_and_entity_affected", ["org_id", "entity_affected"]),
 });
