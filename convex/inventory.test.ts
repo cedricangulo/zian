@@ -6,7 +6,7 @@ import {
 	seedMembership,
 	seedOrganization,
 	seedUser,
-} from "./test-utils";
+	} from "./test-utils.test";
 
 describe("inventory intake", () => {
 	it("creates inbound receipt and records immutable transaction history", async () => {

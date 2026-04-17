@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { api } from "./_generated/api";
-import { seedMembership, createTestBackend } from "./test-utils";
+import { seedMembership, createTestBackend } from "./test-utils.test";
 
 describe("recipes and BOM rules", () => {
 	it("adds and lists recipe lines for a composite product", async () => {

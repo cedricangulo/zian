@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { api } from "./_generated/api";
-import { createTestBackend } from "./test-utils";
+import { createTestBackend } from "./test-utils.test";
 
 describe("bootstrap.syncCurrentClerkOrg", () => {
 	it("provisions an organization and owner profile for an authenticated admin", async () => {

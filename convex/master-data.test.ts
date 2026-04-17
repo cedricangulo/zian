@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { api } from "./_generated/api";
-import { createTestBackend, seedMembership } from "./test-utils";
+import { createTestBackend, seedMembership } from "./test-utils.test";
 
 describe("master data auth and tenancy", () => {
 	it("rejects unauthenticated supplier listing", async () => {

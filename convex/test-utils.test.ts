@@ -6,10 +6,8 @@ import schema from "./schema";
 type OrgRoleClaim = "admin" | "owner" | "member";
 type AppUserRole = "super_admin" | "owner" | "staff";
 
-const modules = import.meta.glob("./**/*.*s");
-
 export function createTestBackend() {
-	return convexTest({ schema, modules });
+	return convexTest(schema);
 }
 
 type SeedOrganizationOptions = {
