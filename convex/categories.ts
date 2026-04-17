@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { computeDelta, writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
@@ -24,7 +24,9 @@ async function ensureNoParentCategoryCycle(
 
 		visitedCategoryIds.add(currentCategoryId);
 
-		const currentCategory = await ctx.db.get(currentCategoryId);
+		const currentCategory: Doc<"categories"> | null = await ctx.db.get(
+			currentCategoryId,
+		);
 		if (!currentCategory || currentCategory.org_id !== orgId) {
 			throw new Error("Parent category not found in your organization");
 		}
