@@ -28,7 +28,9 @@ export function DashboardShell({
 						</p>
 					) : null}
 				</div>
-				{action ? <div className="shrink-0">{action}</div> : null}
+				{action ? (
+					<div className="shrink-0 flex items-center gap-2">{action}</div>
+				) : null}
 			</header>
 			<div className="flex flex-col gap-6 pt-0">{children}</div>
 		</>

@@ -1,15 +1,15 @@
-import type { ReactNode } from "react";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
 
 import {
 	SidebarInset,
 	SidebarProvider,
-	// SidebarTrigger,
+	SidebarTrigger,
 } from "@/components/ui/sidebar";
 // import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
@@ -17,9 +17,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 			<AppSidebar />
 			<SidebarInset>
 				<header className="flex items-center justify-between h-16 gap-2 p-6 pb-0 shrink-0">
-					{/* <SidebarTrigger /> */}
 					{/* <Separator orientation="vertical" className="h-4" /> */}
 					<div className="flex items-center gap-2">
+						<SidebarTrigger />
 						<Image
 							src="/image-placeholder.png"
 							alt="Business Logo"

@@ -1,13 +1,14 @@
-import { DashboardShell } from "@/features/dashboard";
-import { AddProductDialogButton } from "@/features/products";
+import { Suspense } from "react";
+import { ProductsDispatchWorkspace } from "@/features/products/components/products-dispatch-workspace";
 
 export default function ProductsPage() {
 	return (
-		<DashboardShell
-			title={<h2 className="type-lg">Dispatch Products</h2>}
-			action={<AddProductDialogButton />}
+		<Suspense
+			fallback={
+				<p className="type-sm text-muted-foreground">Loading products...</p>
+			}
 		>
-			<div />
-		</DashboardShell>
+			<ProductsDispatchWorkspace />
+		</Suspense>
 	);
 }
