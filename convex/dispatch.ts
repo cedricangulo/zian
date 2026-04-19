@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx } from "./_generated/server";
+import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext } from "./helpers/context";
 
 const MAX_DISPATCH_ITEMS = 200;
@@ -270,6 +271,22 @@ export const createDispatch = mutation({
 			slipItems.push(entry);
 		}
 
+		// 6. Audit log
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "transactions",
+			recordId: transactionId,
+			changeLog: {
+				next: {
+					movement_type: "dispatch",
+					event_reason: eventReason,
+					item_count: allDeductions.length,
+				},
+			},
+		});
+
 		return {
 			transaction_id: transactionId,
 			dispatched_at: eventTime,
@@ -277,6 +294,7 @@ export const createDispatch = mutation({
 		};
 	},
 });
+
 
 // ---------------------------------------------------------------------------
 // Queries

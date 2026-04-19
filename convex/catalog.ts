@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { mutation, query, type MutationCtx } from "./_generated/server";
+import { computeDelta, writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
 const productTypeValidator = v.union(
@@ -10,13 +12,8 @@ const productTypeValidator = v.union(
 );
 
 async function ensureUniqueSku(
-	ctx: Parameters<typeof mutation>[0]["handler"] extends (
-		ctx: infer C,
-		args: any,
-	) => any
-		? C
-		: never,
-	orgId: string,
+	ctx: MutationCtx,
+	orgId: Id<"organizations">,
 	sku: string,
 	excludingId?: string,
 ) {
@@ -77,7 +74,7 @@ export const createProduct = mutation({
 		min_stock_level: v.number(),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		if (args.category_id) {
 			const category = await ctx.db.get(args.category_id);
@@ -88,7 +85,7 @@ export const createProduct = mutation({
 
 		await ensureUniqueSku(ctx, organization._id, args.sku);
 
-		return await ctx.db.insert("products", {
+		const productId = await ctx.db.insert("products", {
 			org_id: organization._id,
 			category_id: args.category_id,
 			sku: args.sku,
@@ -102,6 +99,17 @@ export const createProduct = mutation({
 			min_stock_level: args.min_stock_level,
 			archived_at: undefined,
 		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "products",
+			recordId: productId,
+			changeLog: { next: { sku: args.sku, name: args.name, product_type: args.product_type } },
+		});
+
+		return productId;
 	},
 });
 
@@ -120,7 +128,7 @@ export const updateProduct = mutation({
 		min_stock_level: v.number(),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		const product = await ctx.db.get(args.product_id);
 		if (!product || product.org_id !== organization._id) {
@@ -136,7 +144,7 @@ export const updateProduct = mutation({
 
 		await ensureUniqueSku(ctx, organization._id, args.sku, args.product_id);
 
-		await ctx.db.patch(args.product_id, {
+		const patchData = {
 			category_id:
 				args.category_id === null ? undefined : args.category_id,
 			sku: args.sku,
@@ -148,7 +156,22 @@ export const updateProduct = mutation({
 			track_expiry: args.track_expiry,
 			is_bom: args.is_bom,
 			min_stock_level: args.min_stock_level,
-		});
+		};
+
+		const delta = computeDelta(product as Record<string, unknown>, patchData);
+
+		await ctx.db.patch(args.product_id, patchData);
+
+		if (delta) {
+			await writeAuditLog(ctx, {
+				orgId: organization._id,
+				userId: user._id,
+				actionType: "update",
+				entityAffected: "products",
+				recordId: args.product_id,
+				changeLog: delta,
+			});
+		}
 
 		return args.product_id;
 	},
@@ -159,15 +182,25 @@ export const archiveProduct = mutation({
 		product_id: v.id("products"),
 	},
 	handler: async (ctx, args) => {
-		const { organization } = await requireOwnerContext(ctx);
+		const { organization, user } = await requireOwnerContext(ctx);
 
 		const product = await ctx.db.get(args.product_id);
 		if (!product || product.org_id !== organization._id) {
 			throw new Error("Product not found in your organization");
 		}
 
+		const archivedAt = Date.now();
 		await ctx.db.patch(args.product_id, {
-			archived_at: Date.now(),
+			archived_at: archivedAt,
+		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "archive",
+			entityAffected: "products",
+			recordId: args.product_id,
+			changeLog: { previous: { archived_at: undefined }, next: { archived_at: archivedAt } },
 		});
 
 		return args.product_id;

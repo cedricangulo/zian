@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext } from "./helpers/context";
 
 function ensurePositive(value: number, fieldLabel: string) {
@@ -101,6 +102,22 @@ export const createInboundReceipt = mutation({
 			quantity: args.quantity,
 			cost_at_event: args.cost_price,
 			created_at: eventTime,
+		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "batches",
+			recordId: batchId,
+			changeLog: {
+				next: {
+					batch_code: batchCode,
+					product_name: product.name,
+					quantity: args.quantity,
+					cost_price: args.cost_price,
+				},
+			},
 		});
 
 		return {

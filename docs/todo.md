@@ -37,28 +37,28 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Make composite sales deduct ingredient stock from recipes instead of treating the finished item as a separate stock bucket.
 
 ## 6) Stock Adjustments
-- [ ] Implement manual stock adjustment mutation.
-- [ ] Require a reason code for every adjustment.
-- [ ] Support spoilage, theft, damage, and correction reasons.
-- [ ] Keep adjustment history immutable and traceable.
+- [x] Implement manual stock adjustment mutation.
+- [x] Require a reason code for every adjustment.
+- [x] Support spoilage, theft, damage, and correction reasons.
+- [x] Keep adjustment history immutable and traceable.
 
 ## 7) Audit and History
-- [ ] Write audit log entries for every mutation that changes business data.
-- [ ] Ensure audit logs are append-only.
-- [ ] Add queries for owner/admin audit history views.
+- [x] Write audit log entries for every mutation that changes business data.
+- [x] Ensure audit logs are append-only.
+- [x] Add queries for owner/admin audit history views.
 
 ## 8) Analytics and Dashboards
-- [ ] Add backend queries for asset valuation at cost.
-- [ ] Add backend queries for dead stock analysis.
-- [ ] Add platform usage and tenant health queries for Super Admin.
-- [ ] Keep analytics queries tenant-safe and bounded.
+- [x] Add backend queries for asset valuation at cost.
+- [x] Add backend queries for dead stock analysis.
+- [x] Add platform usage and tenant health queries for Super Admin.
+- [x] Keep analytics queries tenant-safe and bounded.
 
 ## 9) Safety and Constraints
-- [ ] Enforce the "no POS" rule in backend code paths.
-- [ ] Block pricing, discounts, VAT, payments, and invoice generation logic.
-- [ ] Prevent cross-tenant reads and writes in every function.
-- [ ] Keep historical transactions immutable; create corrective records instead of edits.
-- [ ] Avoid storing large nested arrays in documents; use child tables for repeating data.
+- [x] Enforce the "no POS" rule in backend code paths.
+- [x] Block pricing, discounts, VAT, payments, and invoice generation logic.
+- [x] Prevent cross-tenant reads and writes in every function.
+- [x] Keep historical transactions immutable; create corrective records instead of edits.
+- [x] Avoid storing large nested arrays in documents; use child tables for repeating data.
 
 ## 10) Testing
 - [x] Set up `vitest`, `convex-test`, and `@edge-runtime/vm` for Convex tests.
@@ -66,14 +66,20 @@ Scope: Convex backend and database only. Do not start frontend work until this l
 - [x] Write tests for master data CRUD and hierarchy rules.
 - [x] Write tests for BOM deduction.
 - [x] Write tests for inventory intake and immutable receipt history.
-- [ ] Write tests for FEFO batch deduction.
-- [ ] Write tests for stock adjustments and audit logs.
-- [ ] Write tests for dashboard queries and bounded results.
+- [x] Write tests for FEFO batch deduction.
+- [x] Write tests for stock adjustments and audit logs.
+- [x] Write tests for dashboard queries and bounded results.
 
 ## 11) Backend Delivery
 - [x] Run backend tests and fix failures.
-- [ ] Review schema and indexes for performance and integrity.
-- [ ] Document backend APIs and function names for the frontend team.
+- [x] Review schema and indexes for performance and integrity.
+	- [x] Confirm every tenant-owned table has `org_id` and the expected index coverage.
+	- [x] Check hot paths for FEFO, stock adjustments, analytics, and audit history.
+	- [x] Verify historical tables remain append-only and normalized.
+- [x] Document backend APIs and function names for the frontend team.
+	- [x] Publish public queries, mutations, and actions with inputs and outputs.
+	- [x] Note auth, org-scoping, and role requirements for each function.
+	- [x] List backend constraints the frontend must not duplicate.
 
 ## Edge Cases
 - [ ] Prevent a user from accessing data after their organization is archived or suspended.

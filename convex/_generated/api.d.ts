@@ -8,10 +8,15 @@
  * @module
  */
 
+import type * as adjustments from "../adjustments.js";
+import type * as admin from "../admin.js";
+import type * as analytics from "../analytics.js";
+import type * as audit from "../audit.js";
 import type * as bootstrap from "../bootstrap.js";
 import type * as catalog from "../catalog.js";
 import type * as categories from "../categories.js";
 import type * as dispatch from "../dispatch.js";
+import type * as helpers_audit from "../helpers/audit.js";
 import type * as helpers_auth from "../helpers/auth.js";
 import type * as helpers_context from "../helpers/context.js";
 import type * as helpers_tenant from "../helpers/tenant.js";
@@ -26,10 +31,15 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  adjustments: typeof adjustments;
+  admin: typeof admin;
+  analytics: typeof analytics;
+  audit: typeof audit;
   bootstrap: typeof bootstrap;
   catalog: typeof catalog;
   categories: typeof categories;
   dispatch: typeof dispatch;
+  "helpers/audit": typeof helpers_audit;
   "helpers/auth": typeof helpers_auth;
   "helpers/context": typeof helpers_context;
   "helpers/tenant": typeof helpers_tenant;
