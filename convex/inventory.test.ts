@@ -446,3 +446,210 @@ describe("inventory low stock query", () => {
 		);
 	});
 });
+
+describe("inventory overview queries", () => {
+	it("returns inventory table rows with totals and status indicators", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_inventory_overview",
+			tokenIdentifier: "tid_inventory_overview",
+		});
+
+		const now = Date.now();
+		const day = 24 * 60 * 60 * 1000;
+
+		const eggsId = await owner.mutation(api.catalog.createProduct, {
+			sku: "RAW-EGG-01",
+			name: "Egg",
+			base_unit: "pcs",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 20,
+		});
+
+		const milkId = await owner.mutation(api.catalog.createProduct, {
+			sku: "RAW-MLK-01",
+			name: "Milk",
+			base_unit: "L",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: true,
+			is_bom: false,
+			min_stock_level: 5,
+		});
+
+		const lettuceId = await owner.mutation(api.catalog.createProduct, {
+			sku: "RAW-LET-01",
+			name: "Lettuce",
+			base_unit: "kg",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: true,
+			is_bom: false,
+			min_stock_level: 1,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: eggsId,
+			batch_code: "INV-EGG-B1",
+			cost_price: 10,
+			quantity: 89,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: milkId,
+			batch_code: "INV-MLK-B1",
+			cost_price: 5,
+			quantity: 50,
+			expiry_date: now + 2 * day,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: lettuceId,
+			batch_code: "INV-LET-B1",
+			cost_price: 2,
+			quantity: 10,
+			expiry_date: now - day,
+		});
+
+		await owner.mutation(api.dispatch.createDispatch, {
+			items: [{ product_id: eggsId, quantity: 5 }],
+		});
+
+		const result = await owner.query(api.inventory.listInventoryProducts, {});
+
+		expect(result.totals.total_skus).toBe(3);
+		expect(result.totals.total_dispatch_value).toBe(50);
+		expect(result.totals.total_asset_value).toBe(1110);
+
+		const eggs = result.items.find((item) => item.sku === "RAW-EGG-01");
+		expect(eggs?.current_stock_qty).toBe(84);
+		expect(eggs?.asset_value).toBe(840);
+		expect(eggs?.status).toBe("good");
+
+		const milk = result.items.find((item) => item.sku === "RAW-MLK-01");
+		expect(milk?.status).toBe("expiring");
+
+		const lettuce = result.items.find((item) => item.sku === "RAW-LET-01");
+		expect(lettuce?.status).toBe("expired");
+	});
+
+	it("returns batch rows for a product with value and expiry status", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_inventory_batches",
+			tokenIdentifier: "tid_inventory_batches",
+		});
+
+		const now = Date.now();
+		const day = 24 * 60 * 60 * 1000;
+
+		const eggsId = await owner.mutation(api.catalog.createProduct, {
+			sku: "RAW-EGG-BATCH",
+			name: "Egg",
+			base_unit: "pcs",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: true,
+			is_bom: false,
+			min_stock_level: 0,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: eggsId,
+			batch_code: "BCH-01",
+			cost_price: 5,
+			quantity: 89,
+			expiry_date: now + 2 * day,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: eggsId,
+			batch_code: "BCH-02",
+			cost_price: 6,
+			quantity: 89,
+			expiry_date: now - day,
+		});
+
+		const result = await owner.query(api.inventory.getProductBatches, {
+			product_id: eggsId,
+		});
+
+		expect(result.total_batches).toBe(2);
+		expect(result.total_batch_value).toBe(979);
+
+		const batchA = result.batches.find((batch) => batch.batch_code === "BCH-01");
+		expect(batchA?.quantity).toBe(89);
+		expect(batchA?.batch_value).toBe(445);
+		expect(batchA?.status).toBe("expiring");
+
+		const batchB = result.batches.find((batch) => batch.batch_code === "BCH-02");
+		expect(batchB?.quantity).toBe(89);
+		expect(batchB?.batch_value).toBe(534);
+		expect(batchB?.status).toBe("expired");
+	});
+
+	it("blocks staff from inventory overview and batch detail queries", async () => {
+		const t = createTestBackend();
+		const orgId = await seedOrganization(t, {
+			clerkOrgId: "org_inventory_auth",
+		});
+
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_inventory_owner",
+			role: "owner",
+		});
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_inventory_staff",
+			role: "staff",
+		});
+
+		const owner = asOrgUser(t, {
+			clerkOrgId: "org_inventory_auth",
+			tokenIdentifier: "tid_inventory_owner",
+			orgRole: "admin",
+		});
+		const staff = asOrgUser(t, {
+			clerkOrgId: "org_inventory_auth",
+			tokenIdentifier: "tid_inventory_staff",
+			orgRole: "member",
+		});
+
+		const productId = await owner.mutation(api.catalog.createProduct, {
+			sku: "INV-AUTH-001",
+			name: "Paper Straw",
+			base_unit: "pcs",
+			product_type: "packaging",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 10,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: productId,
+			batch_code: "INV-AUTH-B1",
+			cost_price: 1,
+			quantity: 20,
+		});
+
+		await expect(staff.query(api.inventory.listInventoryProducts, {})).rejects.toThrow(
+			"Unauthorized",
+		);
+
+		await expect(
+			staff.query(api.inventory.getProductBatches, {
+				product_id: productId,
+			}),
+		).rejects.toThrow("Unauthorized");
+	});
+});

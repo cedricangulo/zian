@@ -204,7 +204,10 @@ describe("dispatch and FEFO", () => {
 			items: [{ product_id: latteId, quantity: 3 }],
 		});
 
-		expect(result.slip).toHaveLength(2);
+		expect(result.slip).toHaveLength(1);
+		expect(result.slip[0]?.product_name).toBe("Latte");
+		expect(result.slip[0]?.base_unit).toBe("cup");
+		expect(result.slip[0]?.quantity).toBe(3);
 
 		// Verify ingredient batches were deducted
 		const coffeeBatch = await t.run(async (ctx) => {

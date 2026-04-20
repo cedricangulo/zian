@@ -31,6 +31,14 @@ type DispatchSlipItem = {
 	quantity: number;
 };
 
+type ExpandedRequirements = {
+	requirements: Map<Id<"products">, StockRequirement>;
+	requestedSlip: Map<
+		Id<"products">,
+		{ product_name: string; base_unit: string; quantity: number }
+	>;
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -50,8 +58,12 @@ async function expandRequirements(
 	ctx: MutationCtx,
 	orgId: Id<"organizations">,
 	items: { product_id: Id<"products">; quantity: number }[],
-): Promise<Map<Id<"products">, StockRequirement>> {
+): Promise<ExpandedRequirements> {
 	const requirements = new Map<Id<"products">, StockRequirement>();
+	const requestedSlip = new Map<
+		Id<"products">,
+		{ product_name: string; base_unit: string; quantity: number }
+	>();
 
 	for (const item of items) {
 		const product = await ctx.db.get(item.product_id);
@@ -60,6 +72,17 @@ async function expandRequirements(
 		}
 		if (product.archived_at) {
 			throw new Error(`Product "${product.name}" is archived`);
+		}
+
+		const existingSlipItem = requestedSlip.get(product._id);
+		if (existingSlipItem) {
+			existingSlipItem.quantity += item.quantity;
+		} else {
+			requestedSlip.set(product._id, {
+				product_name: product.name,
+				base_unit: product.base_unit,
+				quantity: item.quantity,
+			});
 		}
 
 		if (product.is_bom) {
@@ -110,7 +133,10 @@ async function expandRequirements(
 		}
 	}
 
-	return requirements;
+	return {
+		requirements,
+		requestedSlip,
+	};
 }
 
 /**
@@ -205,7 +231,7 @@ export const createDispatch = mutation({
 		const eventTime = Date.now();
 
 		// 1. Expand BOM products into flat ingredient requirements
-		const requirements = await expandRequirements(
+		const { requirements, requestedSlip } = await expandRequirements(
 			ctx,
 			organization._id,
 			args.items,
@@ -246,28 +272,8 @@ export const createDispatch = mutation({
 			});
 		}
 
-		// 5. Build the dispatch slip (no pricing info – "No POS" rule)
-		const slipItems: DispatchSlipItem[] = [];
-		const slipMap = new Map<
-			Id<"products">,
-			{ product_name: string; base_unit: string; quantity: number }
-		>();
-
-		for (const d of allDeductions) {
-			const existing = slipMap.get(d.productId);
-			if (existing) {
-				existing.quantity += d.quantityDeducted;
-			} else {
-				slipMap.set(d.productId, {
-					product_name: d.productNameSnapshot,
-					base_unit: d.baseUnitSnapshot,
-					quantity: d.quantityDeducted,
-				});
-			}
-		}
-		for (const entry of slipMap.values()) {
-			slipItems.push(entry);
-		}
+		// 5. Build the dispatch slip using requested products (frontend order view)
+		const slipItems: DispatchSlipItem[] = Array.from(requestedSlip.values());
 
 		// 6. Audit log
 		await writeAuditLog(ctx, {

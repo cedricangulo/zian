@@ -275,6 +275,57 @@ Scope: Convex backend functions exposed to the frontend team.
 }
 ```
 
+### InventoryProductItem
+
+```json
+{
+	"product_id": "products_01",
+	"product_name": "Egg",
+	"sku": "RAW-EGG-01",
+	"category": "Food",
+	"product_type": "raw_material",
+	"base_unit": "pcs",
+	"current_stock_qty": 89,
+	"asset_value": 1180,
+	"status": "good",
+	"batch_count": 2,
+	"min_stock_level": 20
+}
+```
+
+- `status` is one of: `"good"`, `"low_stock"`, `"out_of_stock"`, `"expiring"`, `"expired"`
+- `category` prioritizes the user-assigned category over the product type.
+
+### BatchDetail
+
+```json
+{
+	"batch_id": "batches_01",
+	"batch_code": "BCH-01",
+	"quantity": 89,
+	"base_unit": "pcs",
+	"batch_value": 480,
+	"status": "expiring",
+	"expiry_date": 1712592000000,
+	"received_at": 1710000000000,
+	"cost_price": 5.4
+}
+```
+
+- `status` is one of: `"good"`, `"expiring"`, `"expired"`, `"depleted"`
+- `expiry_date` and `received_at` are timestamps; omitted if not tracked.
+- A batch is `"expiring"` if its expiry date is within 7 days.
+
+### InventoryTotals
+
+```json
+{
+	"total_asset_value": 50000,
+	"total_skus": 45,
+	"total_dispatch_value": 12500
+}
+```
+
 ### PlatformTenantSummary
 
 ```json
@@ -705,6 +756,104 @@ Scope: Convex backend functions exposed to the frontend team.
 - Notes:
 	- The query only returns stocked, non-archived products with `min_stock_level > 0`.
 	- `limit` defaults to 50 and is capped at 200.
+
+#### `api.inventory.listInventoryProducts`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `limit?: number` (defaults to 200, capped at 500)
+	- `status?: "good" | "low_stock" | "out_of_stock" | "expiring" | "expired"`
+- Returns:
+	- `totals: InventoryTotals`
+	- `items: InventoryProductItem[]`
+- Success response example:
+
+```json
+{
+	"totals": {
+		"total_asset_value": 50000,
+		"total_skus": 45,
+		"total_dispatch_value": 12500
+	},
+	"items": [
+		{
+			"product_id": "products_01",
+			"product_name": "Egg",
+			"sku": "RAW-EGG-01",
+			"category": "Food",
+			"product_type": "raw_material",
+			"base_unit": "pcs",
+			"current_stock_qty": 89,
+			"asset_value": 1180,
+			"status": "good",
+			"batch_count": 2,
+			"min_stock_level": 20
+		}
+	]
+}
+```
+
+- Behavior:
+	- Returns all stocked, non-archived products with stock tracking enabled.
+	- Includes dispatch value aggregation and asset valuation.
+	- Status considers min stock level, expiry dates, and current stock.
+	- Optional status filter narrows results to products matching that status.
+- Notes:
+	- Batches with `remaining_qty <= 0` are excluded from aggregation.
+	- A product is `"expiring"` if any batch expires within 7 days.
+	- A product is `"expired"` if any batch has passed expiry.
+
+#### `api.inventory.getProductBatches`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `product_id: Id<"products">`
+	- `limit?: number` (defaults to 100, capped at 500)
+	- `include_depleted?: boolean` (defaults to false)
+- Returns:
+	- `product: { product_id, product_name, sku, category, product_type, base_unit, min_stock_level }`
+	- `batches: BatchDetail[]`
+	- `total_batches: number`
+	- `total_batch_value: number`
+- Success response example:
+
+```json
+{
+	"product": {
+		"product_id": "products_01",
+		"product_name": "Egg",
+		"sku": "RAW-EGG-01",
+		"category": "Food",
+		"product_type": "raw_material",
+		"base_unit": "pcs",
+		"min_stock_level": 20
+	},
+	"batches": [
+		{
+			"batch_id": "batches_01",
+			"batch_code": "BCH-01",
+			"quantity": 89,
+			"base_unit": "pcs",
+			"batch_value": 480,
+			"status": "expiring",
+			"expiry_date": 1712592000000,
+			"received_at": 1710000000000,
+			"cost_price": 5.4
+		}
+	],
+	"total_batches": 2,
+	"total_batch_value": 979
+}
+```
+
+- Behavior:
+	- Returns all batches for a product ordered by expiry date (FEFO: earliest first).
+	- Excludes depleted batches (`remaining_qty <= 0`) unless `include_depleted=true`.
+	- Includes batch values and expiry/status information.
+- Errors:
+	- `Product not found in your organization` (cross-tenant access attempted or product archived)
 
 ### Dispatch
 

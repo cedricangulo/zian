@@ -4,6 +4,67 @@ import { mutation, query } from "./_generated/server";
 import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const EXPIRING_SOON_DAYS = 7;
+
+const inventoryStatus = v.union(
+	v.literal("good"),
+	v.literal("low_stock"),
+	v.literal("out_of_stock"),
+	v.literal("expiring"),
+	v.literal("expired"),
+);
+
+function getBatchStatus(
+	expiryDate: number | undefined,
+	remainingQty: number,
+	now: number,
+	expiringSoonCutoff: number,
+): "good" | "expiring" | "expired" | "depleted" {
+	if (remainingQty <= 0) {
+		return "depleted";
+	}
+
+	if (expiryDate === undefined) {
+		return "good";
+	}
+
+	if (expiryDate < now) {
+		return "expired";
+	}
+
+	if (expiryDate <= expiringSoonCutoff) {
+		return "expiring";
+	}
+
+	return "good";
+}
+
+function getProductStatus(input: {
+	currentStockQty: number;
+	minStockLevel: number;
+	hasExpiredBatch: boolean;
+	hasExpiringBatch: boolean;
+}): "good" | "low_stock" | "out_of_stock" | "expiring" | "expired" {
+	if (input.currentStockQty <= 0) {
+		return "out_of_stock";
+	}
+
+	if (input.hasExpiredBatch) {
+		return "expired";
+	}
+
+	if (input.hasExpiringBatch) {
+		return "expiring";
+	}
+
+	if (input.minStockLevel > 0 && input.currentStockQty < input.minStockLevel) {
+		return "low_stock";
+	}
+
+	return "good";
+}
+
 function ensurePositive(value: number, fieldLabel: string) {
 	if (!Number.isFinite(value) || value <= 0) {
 		throw new Error(`${fieldLabel} must be greater than zero`);
@@ -126,6 +187,218 @@ export const createInboundReceipt = mutation({
 			batch_id: batchId,
 			batch_code: batchCode,
 			received_at: receivedAt,
+		};
+	},
+});
+
+export const listInventoryProducts = query({
+	args: {
+		limit: v.optional(v.number()),
+		status: v.optional(inventoryStatus),
+	},
+	handler: async (ctx, args) => {
+		const { organization } = await requireOwnerContext(ctx);
+
+		const maxRows = Math.min(args.limit ?? 200, 500);
+		const now = Date.now();
+		const expiringSoonCutoff = now + EXPIRING_SOON_DAYS * MS_PER_DAY;
+
+		const [products, categories, batches] = await Promise.all([
+			ctx.db
+				.query("products")
+				.withIndex("by_org_id", (q) => q.eq("org_id", organization._id))
+				.take(2000),
+			ctx.db
+				.query("categories")
+				.withIndex("by_org_id", (q) => q.eq("org_id", organization._id))
+				.take(1000),
+			ctx.db
+				.query("batches")
+				.withIndex("by_org_id", (q) => q.eq("org_id", organization._id))
+				.take(5000),
+		]);
+
+		const inventoryProducts = products.filter(
+			(product) => !product.archived_at && product.stock_tracked,
+		);
+
+		const categoryNameById = new Map(categories.map((category) => [category._id, category.name]));
+
+		const activeBatchesByProduct = new Map<Id<"products">, typeof batches>();
+		for (const batch of batches) {
+			if (batch.remaining_qty <= 0) {
+				continue;
+			}
+
+			const existing = activeBatchesByProduct.get(batch.product_id) ?? [];
+			existing.push(batch);
+			activeBatchesByProduct.set(batch.product_id, existing);
+		}
+
+		const items = inventoryProducts
+			.map((product) => {
+				const productBatches = activeBatchesByProduct.get(product._id) ?? [];
+				const currentStockQty = productBatches.reduce(
+					(sum, batch) => sum + batch.remaining_qty,
+					0,
+				);
+				const assetValue = productBatches.reduce(
+					(sum, batch) => sum + batch.remaining_qty * batch.cost_price,
+					0,
+				);
+
+				const hasExpiredBatch = productBatches.some(
+					(batch) => batch.expiry_date !== undefined && batch.expiry_date < now,
+				);
+				const hasExpiringBatch = productBatches.some(
+					(batch) =>
+						batch.expiry_date !== undefined &&
+						batch.expiry_date >= now &&
+						batch.expiry_date <= expiringSoonCutoff,
+				);
+
+				const status = getProductStatus({
+					currentStockQty,
+					minStockLevel: product.min_stock_level,
+					hasExpiredBatch,
+					hasExpiringBatch,
+				});
+
+				return {
+					product_id: product._id,
+					product_name: product.name,
+					sku: product.sku,
+					category:
+						(product.category_id
+							? categoryNameById.get(product.category_id)
+							: undefined) ?? product.product_type,
+					product_type: product.product_type,
+					base_unit: product.base_unit,
+					current_stock_qty: currentStockQty,
+					asset_value: assetValue,
+					status,
+					batch_count: productBatches.length,
+					min_stock_level: product.min_stock_level,
+				};
+			})
+			.filter((item) => (args.status ? item.status === args.status : true))
+			.sort((left, right) => left.product_name.localeCompare(right.product_name));
+
+		const dispatchTransactions = await ctx.db
+			.query("transactions")
+			.withIndex("by_org_id_and_movement_type", (q) =>
+				q.eq("org_id", organization._id).eq("movement_type", "dispatch"),
+			)
+			.take(2000);
+
+		const dispatchItemsByTransaction = await Promise.all(
+			dispatchTransactions.map((transaction) =>
+				ctx.db
+					.query("transaction_items")
+					.withIndex("by_org_id_and_transaction_id", (q) =>
+						q
+							.eq("org_id", organization._id)
+							.eq("transaction_id", transaction._id),
+					)
+					.take(500),
+			),
+		);
+
+		let totalDispatchValue = 0;
+		for (const transactionItems of dispatchItemsByTransaction) {
+			for (const item of transactionItems) {
+				totalDispatchValue += item.quantity * item.cost_at_event;
+			}
+		}
+
+		const totalAssetValue = items.reduce(
+			(sum, item) => sum + item.asset_value,
+			0,
+		);
+
+		return {
+			totals: {
+				total_asset_value: totalAssetValue,
+				total_skus: items.length,
+				total_dispatch_value: totalDispatchValue,
+			},
+			items: items.slice(0, maxRows),
+		};
+	},
+});
+
+export const getProductBatches = query({
+	args: {
+		product_id: v.id("products"),
+		limit: v.optional(v.number()),
+		include_depleted: v.optional(v.boolean()),
+	},
+	handler: async (ctx, args) => {
+		const { organization } = await requireOwnerContext(ctx);
+
+		const product = await ctx.db.get(args.product_id);
+		if (!product || product.org_id !== organization._id) {
+			throw new Error("Product not found in your organization");
+		}
+
+		const now = Date.now();
+		const expiringSoonCutoff = now + EXPIRING_SOON_DAYS * MS_PER_DAY;
+		const maxRows = Math.min(args.limit ?? 100, 500);
+
+		const category = product.category_id
+			? await ctx.db.get(product.category_id)
+			: null;
+
+		const batches = await ctx.db
+			.query("batches")
+			.withIndex("by_org_id_and_product_id_and_expiry_date", (q) =>
+				q.eq("org_id", organization._id).eq("product_id", args.product_id),
+			)
+			.take(1000);
+
+		const includeDepleted = args.include_depleted ?? false;
+
+		const mappedBatches = batches
+			.filter((batch) => includeDepleted || batch.remaining_qty > 0)
+			.map((batch) => {
+				const status = getBatchStatus(
+					batch.expiry_date,
+					batch.remaining_qty,
+					now,
+					expiringSoonCutoff,
+				);
+
+				return {
+					batch_id: batch._id,
+					batch_code: batch.batch_code,
+					quantity: batch.remaining_qty,
+					base_unit: product.base_unit,
+					batch_value: batch.remaining_qty * batch.cost_price,
+					status,
+					expiry_date: batch.expiry_date,
+					received_at: batch.received_at,
+					cost_price: batch.cost_price,
+				};
+			});
+
+		const totalBatchValue = mappedBatches.reduce(
+			(sum, batch) => sum + batch.batch_value,
+			0,
+		);
+
+		return {
+			product: {
+				product_id: product._id,
+				product_name: product.name,
+				sku: product.sku,
+				category: category?.name ?? product.product_type,
+				product_type: product.product_type,
+				base_unit: product.base_unit,
+				min_stock_level: product.min_stock_level,
+			},
+			batches: mappedBatches.slice(0, maxRows),
+			total_batches: mappedBatches.length,
+			total_batch_value: totalBatchValue,
 		};
 	},
 });
