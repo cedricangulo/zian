@@ -282,6 +282,261 @@ describe("analytics: dead stock", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Dispatch Value Tests
+// ---------------------------------------------------------------------------
+
+describe("analytics: dispatch value", () => {
+	it("calculates total dispatch value with per-product breakdown", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_dv_basic",
+			tokenIdentifier: "tid_dv_basic",
+		});
+
+		const productId = await seedProduct(owner, {
+			sku: "DV-001",
+			name: "Coffee Beans",
+		});
+
+		await seedBatch(owner, {
+			product_id: productId,
+			qty: 100,
+			cost: 10,
+			batch_code: "DV-B1",
+		});
+
+		await owner.mutation(api.dispatch.createDispatch, {
+			items: [{ product_id: productId, quantity: 20 }],
+		});
+
+		const result = await owner.query(api.analytics.getDispatchValue, {
+			range: "all",
+		});
+
+		expect(result.total_dispatch_value).toBe(200);
+		expect(result.dispatch_count).toBe(1);
+		expect(result.item_count).toBe(1);
+		expect(result.breakdown).toHaveLength(1);
+		expect(result.breakdown[0]?.product_name).toBe("Coffee Beans");
+		expect(result.breakdown[0]?.quantity).toBe(20);
+		expect(result.breakdown[0]?.total_value).toBe(200);
+	});
+
+	it("filters dispatch value by time range", async () => {
+		const t = createTestBackend();
+		const { actor: owner, orgId, userId } = await seedMembership(t, {
+			clerkOrgId: "org_dv_range",
+			tokenIdentifier: "tid_dv_range",
+		});
+
+		const productId = await seedProduct(owner, {
+			sku: "DV-002",
+			name: "Milk",
+		});
+
+		await seedBatch(owner, {
+			product_id: productId,
+			qty: 50,
+			cost: 10,
+			batch_code: "DV-RANGE-B1",
+		});
+
+		const oldCreatedAt = Date.now() - 10 * 24 * 60 * 60 * 1000;
+		await t.run(async (ctx) => {
+			const oldTransactionId = await ctx.db.insert("transactions", {
+				org_id: orgId,
+				user_id: userId,
+				movement_type: "dispatch",
+				event_reason: "sale",
+				created_at: oldCreatedAt,
+			});
+
+			await ctx.db.insert("transaction_items", {
+				org_id: orgId,
+				transaction_id: oldTransactionId,
+				product_id: productId,
+				product_name_snapshot: "Milk",
+				base_unit_snapshot: "kg",
+				quantity: 5,
+				cost_at_event: 10,
+				created_at: oldCreatedAt,
+			});
+		});
+
+		await owner.mutation(api.dispatch.createDispatch, {
+			items: [{ product_id: productId, quantity: 3 }],
+		});
+
+		const todayResult = await owner.query(api.analytics.getDispatchValue, {
+			range: "today",
+		});
+		const allResult = await owner.query(api.analytics.getDispatchValue, {
+			range: "all",
+		});
+
+		expect(todayResult.total_dispatch_value).toBe(30);
+		expect(todayResult.dispatch_count).toBe(1);
+
+		expect(allResult.total_dispatch_value).toBe(80);
+		expect(allResult.dispatch_count).toBe(2);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Expiring Batches Tests
+// ---------------------------------------------------------------------------
+
+describe("analytics: expiring batches", () => {
+	it("returns batches expiring soon with urgency buckets", async () => {
+		const t = createTestBackend();
+		const { actor: owner, orgId } = await seedMembership(t, {
+			clerkOrgId: "org_exp_watch",
+			tokenIdentifier: "tid_exp_watch",
+		});
+
+		const productId = await seedProduct(owner, {
+			sku: "EXP-001",
+			name: "Milk Powder",
+		});
+
+		const now = Date.now();
+		await t.run(async (ctx) => {
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "EXP-CRITICAL",
+				cost_price: 12,
+				initial_qty: 10,
+				remaining_qty: 10,
+				expiry_date: now + 2 * 24 * 60 * 60 * 1000,
+				received_at: now - 5 * 24 * 60 * 60 * 1000,
+			});
+
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "EXP-WATCH",
+				cost_price: 12,
+				initial_qty: 8,
+				remaining_qty: 8,
+				expiry_date: now + 10 * 24 * 60 * 60 * 1000,
+				received_at: now - 5 * 24 * 60 * 60 * 1000,
+			});
+
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "EXP-EXPIRED",
+				cost_price: 12,
+				initial_qty: 6,
+				remaining_qty: 6,
+				expiry_date: now - 1 * 24 * 60 * 60 * 1000,
+				received_at: now - 5 * 24 * 60 * 60 * 1000,
+			});
+
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "EXP-FAR",
+				cost_price: 12,
+				initial_qty: 6,
+				remaining_qty: 6,
+				expiry_date: now + 20 * 24 * 60 * 60 * 1000,
+				received_at: now - 5 * 24 * 60 * 60 * 1000,
+			});
+
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "EXP-DEPLETED",
+				cost_price: 12,
+				initial_qty: 6,
+				remaining_qty: 0,
+				expiry_date: now + 1 * 24 * 60 * 60 * 1000,
+				received_at: now - 5 * 24 * 60 * 60 * 1000,
+			});
+		});
+
+		const result = await owner.query(api.analytics.getExpiringBatches, {
+			days_threshold: 14,
+		});
+
+		const codes = result.batches_expiring_soon.map((row) => row.batch_code);
+		expect(codes).toContain("EXP-CRITICAL");
+		expect(codes).toContain("EXP-WATCH");
+		expect(codes).not.toContain("EXP-EXPIRED");
+		expect(codes).not.toContain("EXP-FAR");
+		expect(codes).not.toContain("EXP-DEPLETED");
+
+		expect(result.count_critical).toBe(1);
+		expect(result.count_warning).toBe(0);
+		expect(result.count_watch).toBe(1);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Procurement Cost Trends Tests
+// ---------------------------------------------------------------------------
+
+describe("analytics: procurement cost trends", () => {
+	it("compares current month costs against previous month", async () => {
+		const t = createTestBackend();
+		const { actor: owner, orgId } = await seedMembership(t, {
+			clerkOrgId: "org_cost_trends",
+			tokenIdentifier: "tid_cost_trends",
+		});
+
+		const productId = await seedProduct(owner, {
+			sku: "CT-001",
+			name: "Arabica Coffee",
+		});
+
+		const now = new Date();
+		const currentMonthStart = new Date(
+			now.getFullYear(),
+			now.getMonth(),
+			1,
+		).getTime();
+		const previousMonthStart = new Date(
+			now.getFullYear(),
+			now.getMonth() - 1,
+			1,
+		).getTime();
+
+		await t.run(async (ctx) => {
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "CT-PREV",
+				cost_price: 100,
+				initial_qty: 20,
+				remaining_qty: 20,
+				received_at: previousMonthStart + 2 * 24 * 60 * 60 * 1000,
+			});
+
+			await ctx.db.insert("batches", {
+				org_id: orgId,
+				product_id: productId,
+				batch_code: "CT-CURR",
+				cost_price: 120,
+				initial_qty: 20,
+				remaining_qty: 20,
+				received_at: currentMonthStart + 2 * 24 * 60 * 60 * 1000,
+			});
+		});
+
+		const result = await owner.query(api.analytics.getProcurementCostTrends, {});
+
+		expect(result.trends).toHaveLength(1);
+		expect(result.trends[0]?.product_id).toBe(productId);
+		expect(result.trends[0]?.previous_month_cost_price).toBe(100);
+		expect(result.trends[0]?.current_cost_price).toBe(120);
+		expect(result.trends[0]?.cost_change).toBe(20);
+		expect(result.trends[0]?.price_trend).toBe("increased");
+	});
+});
+
+// ---------------------------------------------------------------------------
 // Admin: Platform Usage Tests
 // ---------------------------------------------------------------------------
 

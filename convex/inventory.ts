@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
 import { writeAuditLog } from "./helpers/audit";
-import { requireCurrentContext } from "./helpers/context";
+import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
 function ensurePositive(value: number, fieldLabel: string) {
 	if (!Number.isFinite(value) || value <= 0) {
@@ -125,6 +126,76 @@ export const createInboundReceipt = mutation({
 			batch_id: batchId,
 			batch_code: batchCode,
 			received_at: receivedAt,
+		};
+	},
+});
+
+export const getLowStockItems = query({
+	args: {
+		limit: v.optional(v.number()),
+	},
+	handler: async (ctx, args) => {
+		const { organization } = await requireOwnerContext(ctx);
+
+		const maxRows = Math.min(args.limit ?? 50, 200);
+
+		const products = await ctx.db
+			.query("products")
+			.withIndex("by_org_id", (q) => q.eq("org_id", organization._id))
+			.take(1000);
+
+		const trackedProducts = products.filter(
+			(product) =>
+				!product.archived_at && product.stock_tracked && product.min_stock_level > 0,
+		);
+
+		if (trackedProducts.length === 0) {
+			return {
+				low_stock_items: [],
+				total_items: 0,
+			};
+		}
+
+		const batches = await ctx.db
+			.query("batches")
+			.withIndex("by_org_id", (q) => q.eq("org_id", organization._id))
+			.take(3000);
+
+		const stockByProduct = new Map<Id<"products">, number>();
+		for (const batch of batches) {
+			if (batch.remaining_qty <= 0) {
+				continue;
+			}
+
+			const existingQty = stockByProduct.get(batch.product_id) ?? 0;
+			stockByProduct.set(batch.product_id, existingQty + batch.remaining_qty);
+		}
+
+		const lowStockItems = trackedProducts
+			.map((product) => {
+				const currentStockQty = stockByProduct.get(product._id) ?? 0;
+				const stockDeficit = Math.max(product.min_stock_level - currentStockQty, 0);
+
+				return {
+					product_id: product._id,
+					product_name: product.name,
+					sku: product.sku,
+					base_unit: product.base_unit,
+					current_stock_qty: currentStockQty,
+					min_stock_level: product.min_stock_level,
+					stock_deficit: stockDeficit,
+				};
+			})
+			.filter((item) => item.current_stock_qty < item.min_stock_level)
+			.sort(
+				(a, b) =>
+					b.stock_deficit - a.stock_deficit ||
+					a.product_name.localeCompare(b.product_name),
+			);
+
+		return {
+			low_stock_items: lowStockItems.slice(0, maxRows),
+			total_items: lowStockItems.length,
 		};
 	},
 });

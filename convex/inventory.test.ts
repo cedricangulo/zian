@@ -337,3 +337,112 @@ describe("inventory intake", () => {
 		expect(transactionItems[0]?.base_unit_snapshot).toBe("box");
 	});
 });
+
+describe("inventory low stock query", () => {
+	it("returns only products below minimum stock level", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_low_stock",
+			tokenIdentifier: "tid_low_stock",
+		});
+
+		const sugarId = await owner.mutation(api.catalog.createProduct, {
+			sku: "LOW-001",
+			name: "Sugar",
+			base_unit: "g",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 10,
+		});
+
+		const coffeeId = await owner.mutation(api.catalog.createProduct, {
+			sku: "LOW-002",
+			name: "Coffee",
+			base_unit: "g",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 5,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: sugarId,
+			batch_code: "LOW-B1",
+			cost_price: 2,
+			quantity: 4,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: coffeeId,
+			batch_code: "LOW-B2",
+			cost_price: 3,
+			quantity: 7,
+		});
+
+		const result = await owner.query(api.inventory.getLowStockItems, {});
+
+		expect(result.total_items).toBe(1);
+		expect(result.low_stock_items).toHaveLength(1);
+		expect(result.low_stock_items[0]?.product_name).toBe("Sugar");
+		expect(result.low_stock_items[0]?.current_stock_qty).toBe(4);
+		expect(result.low_stock_items[0]?.min_stock_level).toBe(10);
+		expect(result.low_stock_items[0]?.stock_deficit).toBe(6);
+	});
+
+	it("blocks staff from low stock query", async () => {
+		const t = createTestBackend();
+		const orgId = await seedOrganization(t, {
+			clerkOrgId: "org_low_stock_auth",
+		});
+
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_low_stock_owner",
+			role: "owner",
+		});
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_low_stock_staff",
+			role: "staff",
+		});
+
+		const owner = asOrgUser(t, {
+			clerkOrgId: "org_low_stock_auth",
+			tokenIdentifier: "tid_low_stock_owner",
+			orgRole: "admin",
+		});
+		const staff = asOrgUser(t, {
+			clerkOrgId: "org_low_stock_auth",
+			tokenIdentifier: "tid_low_stock_staff",
+			orgRole: "member",
+		});
+
+		const productId = await owner.mutation(api.catalog.createProduct, {
+			sku: "LOW-AUTH-001",
+			name: "Milk",
+			base_unit: "L",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 10,
+		});
+
+		await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: productId,
+			batch_code: "LOW-AUTH-B1",
+			cost_price: 6,
+			quantity: 2,
+		});
+
+		await expect(staff.query(api.inventory.getLowStockItems, {})).rejects.toThrow(
+			"Unauthorized",
+		);
+	});
+});

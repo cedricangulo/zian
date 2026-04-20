@@ -366,4 +366,97 @@ describe("stock adjustments", () => {
 
 		expect(result.delta).toBe(-5);
 	});
+
+	// -----------------------------------------------------------------------
+	// Owner dashboard summary query
+	// -----------------------------------------------------------------------
+	it("returns manual adjustments summary with recent logs", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_adj_summary",
+			tokenIdentifier: "tid_adj_summary",
+		});
+
+		const { batchId } = await seedBatch(owner, {
+			sku: "ADJ-SUM",
+			name: "Tomatoes",
+			base_unit: "kg",
+			quantity: 50,
+			cost_price: 3,
+		});
+
+		await owner.mutation(api.adjustments.createAdjustment, {
+			batch_id: batchId,
+			adjusted_qty: 45,
+			reason: "spoilage",
+		});
+
+		await owner.mutation(api.adjustments.createAdjustment, {
+			batch_id: batchId,
+			adjusted_qty: 43,
+			reason: "damage",
+		});
+
+		const result = await owner.query(api.adjustments.getManualAdjustmentsSummary, {
+			limit: 10,
+		});
+
+		expect(result.total_adjustments_today).toBeGreaterThanOrEqual(2);
+		expect(result.total_adjustments_this_week).toBeGreaterThanOrEqual(2);
+		expect(result.total_adjustments_this_month).toBeGreaterThanOrEqual(2);
+		expect(result.recent_logs.length).toBeGreaterThanOrEqual(2);
+		expect(
+			result.recent_logs.some((log) => log.product_name === "Tomatoes"),
+		).toBe(true);
+		expect(
+			result.recent_logs.some((log) => log.reason === "spoilage"),
+		).toBe(true);
+	});
+
+	it("blocks staff from manual adjustments summary query", async () => {
+		const t = createTestBackend();
+		const orgId = await seedOrganization(t, {
+			clerkOrgId: "org_adj_summary_auth",
+		});
+
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_adj_summary_owner",
+			role: "owner",
+		});
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_adj_summary_staff",
+			role: "staff",
+		});
+
+		const owner = asOrgUser(t, {
+			clerkOrgId: "org_adj_summary_auth",
+			tokenIdentifier: "tid_adj_summary_owner",
+			orgRole: "admin",
+		});
+		const staff = asOrgUser(t, {
+			clerkOrgId: "org_adj_summary_auth",
+			tokenIdentifier: "tid_adj_summary_staff",
+			orgRole: "member",
+		});
+
+		const { batchId } = await seedBatch(owner, {
+			sku: "ADJ-SUM-AUTH",
+			name: "Flour",
+			base_unit: "kg",
+			quantity: 25,
+			cost_price: 2,
+		});
+
+		await owner.mutation(api.adjustments.createAdjustment, {
+			batch_id: batchId,
+			adjusted_qty: 20,
+			reason: "spoilage",
+		});
+
+		await expect(
+			staff.query(api.adjustments.getManualAdjustmentsSummary, {}),
+		).rejects.toThrow("Unauthorized");
+	});
 });

@@ -183,6 +183,79 @@ Scope: Convex backend functions exposed to the frontend team.
 }
 ```
 
+### DispatchValueItem
+
+```json
+{
+	"product_id": "products_01",
+	"product_name": "Sugar 1kg",
+	"sku": "SUGAR-1KG",
+	"base_unit": "kg",
+	"quantity": 18,
+	"total_value": 225
+}
+```
+
+### ExpiringBatchItem
+
+```json
+{
+	"batch_id": "batches_01",
+	"batch_code": "BATCH-2026-001",
+	"product_id": "products_01",
+	"product_name": "Milk",
+	"sku": "MILK-500ML",
+	"base_unit": "L",
+	"remaining_qty": 82,
+	"expiry_date": 1712592000000,
+	"days_until_expiry": 2,
+	"urgency": "critical"
+}
+```
+
+### ProcurementTrendItem
+
+```json
+{
+	"product_id": "products_01",
+	"product_name": "Arabica Coffee",
+	"sku": "COF-ARAB-1KG",
+	"current_cost_price": 120,
+	"previous_month_cost_price": 100,
+	"cost_change": 20,
+	"cost_change_percent": 20,
+	"price_trend": "increased"
+}
+```
+
+### LowStockItem
+
+```json
+{
+	"product_id": "products_01",
+	"product_name": "Sugar",
+	"sku": "SUGAR-1KG",
+	"base_unit": "kg",
+	"current_stock_qty": 4,
+	"min_stock_level": 10,
+	"stock_deficit": 6
+}
+```
+
+### ManualAdjustmentLog
+
+```json
+{
+	"transaction_id": "transactions_01",
+	"batch_code": "BATCH-2026-001",
+	"product_name": "Tomatoes",
+	"adjusted_qty": -5,
+	"reason": "spoilage",
+	"created_at": 1710000000000,
+	"user_name": "Ava Reyes"
+}
+```
+
 ### DeadStockItem
 
 ```json
@@ -601,6 +674,38 @@ Scope: Convex backend functions exposed to the frontend team.
 	- `Supplier not found in your organization`
 	- `Batch code already exists in your organization`
 
+#### `api.inventory.getLowStockItems`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `limit?: number`
+- Returns:
+	- `low_stock_items: LowStockItem[]`
+	- `total_items: number`
+- Success response example:
+
+```json
+{
+	"low_stock_items": [
+		{
+			"product_id": "products_01",
+			"product_name": "Sugar",
+			"sku": "SUGAR-1KG",
+			"base_unit": "kg",
+			"current_stock_qty": 4,
+			"min_stock_level": 10,
+			"stock_deficit": 6
+		}
+	],
+	"total_items": 1
+}
+```
+
+- Notes:
+	- The query only returns stocked, non-archived products with `min_stock_level > 0`.
+	- `limit` defaults to 50 and is capped at 200.
+
 ### Dispatch
 
 #### `api.dispatch.createDispatch`
@@ -734,6 +839,42 @@ Scope: Convex backend functions exposed to the frontend team.
 	- `limit` defaults to 50 and is capped at 200.
 	- The batch-scoped branch currently returns all transaction items for the batch, not a separate adjustment envelope.
 
+#### `api.adjustments.getManualAdjustmentsSummary`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `limit?: number`
+- Returns:
+	- `total_adjustments_today: number`
+	- `total_adjustments_this_week: number`
+	- `total_adjustments_this_month: number`
+	- `recent_logs: ManualAdjustmentLog[]`
+- Success response example:
+
+```json
+{
+	"total_adjustments_today": 2,
+	"total_adjustments_this_week": 5,
+	"total_adjustments_this_month": 12,
+	"recent_logs": [
+		{
+			"transaction_id": "transactions_01",
+			"batch_code": "BATCH-2026-001",
+			"product_name": "Tomatoes",
+			"adjusted_qty": -5,
+			"reason": "spoilage",
+			"created_at": 1710000000000,
+			"user_name": "Ava Reyes"
+		}
+	]
+}
+```
+
+- Notes:
+	- The summary is built from adjustment transactions and their linked transaction items.
+	- `limit` defaults to 25 and is capped at 100.
+
 ### Audit
 
 #### `api.audit.listAuditLogs`
@@ -798,6 +939,130 @@ Scope: Convex backend functions exposed to the frontend team.
 - Notes:
 	- The response is a bounded snapshot, not an unbounded warehouse valuation scan.
 	- `limit` defaults to 1000 and is capped at 1000.
+
+#### `api.analytics.getDispatchValue`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `range?: "today" | "week" | "month" | "all"`
+	- `limit?: number`
+- Returns:
+	- `range: "today" | "week" | "month" | "all"`
+	- `from_timestamp: number | null`
+	- `total_dispatch_value: number`
+	- `dispatch_count: number`
+	- `item_count: number`
+	- `breakdown: DispatchValueItem[]`
+- Success response example:
+
+```json
+{
+	"range": "all",
+	"from_timestamp": null,
+	"total_dispatch_value": 225,
+	"dispatch_count": 1,
+	"item_count": 1,
+	"breakdown": [
+		{
+			"product_id": "products_01",
+			"product_name": "Sugar 1kg",
+			"sku": "SUGAR-1KG",
+			"base_unit": "kg",
+			"quantity": 18,
+			"total_value": 225
+		}
+	]
+}
+```
+
+- Notes:
+	- The query sums `transaction_items.quantity * transaction_items.cost_at_event` for dispatch transactions.
+	- `range` is applied against `transactions.created_at`.
+	- `limit` defaults to 1000 and is capped at 2000.
+
+#### `api.analytics.getExpiringBatches`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `days_threshold?: number`
+	- `limit?: number`
+- Returns:
+	- `days_threshold: number`
+	- `batches_expiring_soon: ExpiringBatchItem[]`
+	- `count_critical: number`
+	- `count_warning: number`
+	- `count_watch: number`
+- Success response example:
+
+```json
+{
+	"days_threshold": 14,
+	"batches_expiring_soon": [
+		{
+			"batch_id": "batches_01",
+			"batch_code": "BATCH-2026-001",
+			"product_id": "products_01",
+			"product_name": "Milk",
+			"sku": "MILK-500ML",
+			"base_unit": "L",
+			"remaining_qty": 82,
+			"expiry_date": 1712592000000,
+			"days_until_expiry": 2,
+			"urgency": "critical"
+		}
+	],
+	"count_critical": 1,
+	"count_warning": 0,
+	"count_watch": 0
+}
+```
+
+- Notes:
+	- `days_threshold` defaults to 14 and is capped at 90.
+	- The query excludes depleted batches and batches without an expiry date.
+
+#### `api.analytics.getProcurementCostTrends`
+
+- Type: query
+- Access: owner/admin only
+- Args:
+	- `months_back?: number`
+	- `limit?: number`
+	- `min_price_change_percent?: number`
+- Returns:
+	- `months_back: number`
+	- `date_range: { current_month: string; previous_month: string }`
+	- `trends: ProcurementTrendItem[]`
+- Success response example:
+
+```json
+{
+	"months_back": 1,
+	"date_range": {
+		"current_month": "2026-04",
+		"previous_month": "2026-03"
+	},
+	"trends": [
+		{
+			"product_id": "products_01",
+			"product_name": "Arabica Coffee",
+			"sku": "COF-ARAB-1KG",
+			"current_cost_price": 120,
+			"previous_month_cost_price": 100,
+			"cost_change": 20,
+			"cost_change_percent": 20,
+			"price_trend": "increased"
+		}
+	]
+}
+```
+
+- Notes:
+	- The query compares the latest batch received in the current month to the latest batch received in the comparison month.
+	- `months_back` defaults to 1 and is capped at 12.
+	- `min_price_change_percent` filters out small changes.
 
 #### `api.analytics.getDeadStock`
 
@@ -885,7 +1150,7 @@ Scope: Convex backend functions exposed to the frontend team.
 - All list and detail calls are tenant-scoped; the frontend should never pass org identifiers for authorization.
 - `api.adjustments.listAdjustments` has two response shapes depending on whether `batch_id` is provided.
 - `archiveCategory` and `archiveSupplier` currently perform referentially safe hard deletes because those tables do not have archive flags.
-- The main dashboard queries are `getAssetValuation`, `getDeadStock`, and `getPlatformUsage`.
+- The main dashboard queries are `getAssetValuation`, `getDispatchValue`, `getExpiringBatches`, `getProcurementCostTrends`, `getDeadStock`, and `getManualAdjustmentsSummary`.
 
 ## Schema And Index Review
 

@@ -1,7 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { writeAuditLog } from "./helpers/audit";
-import { requireCurrentContext } from "./helpers/context";
+import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const adjustmentReason = v.union(
 	v.literal("spoilage"),
@@ -140,5 +142,91 @@ export const listAdjustments = query({
 			.take(limit);
 
 		return transactions;
+	},
+});
+
+export const getManualAdjustmentsSummary = query({
+	args: {
+		limit: v.optional(v.number()),
+	},
+	handler: async (ctx, args) => {
+		const { organization } = await requireOwnerContext(ctx);
+
+		const now = Date.now();
+		const limit = Math.min(args.limit ?? 25, 100);
+
+		const todayStart = new Date(now);
+		todayStart.setHours(0, 0, 0, 0);
+
+		const weekStart = now - 7 * MS_PER_DAY;
+		const monthStart = new Date(now);
+		monthStart.setDate(1);
+		monthStart.setHours(0, 0, 0, 0);
+
+		const transactions = await ctx.db
+			.query("transactions")
+			.withIndex("by_org_id_and_movement_type", (q) =>
+				q.eq("org_id", organization._id).eq("movement_type", "adjustment"),
+			)
+			.order("desc")
+			.take(1000);
+
+		let totalAdjustmentsToday = 0;
+		let totalAdjustmentsThisWeek = 0;
+		let totalAdjustmentsThisMonth = 0;
+
+		for (const transaction of transactions) {
+			if (transaction.created_at >= todayStart.getTime()) {
+				totalAdjustmentsToday += 1;
+			}
+			if (transaction.created_at >= weekStart) {
+				totalAdjustmentsThisWeek += 1;
+			}
+			if (transaction.created_at >= monthStart.getTime()) {
+				totalAdjustmentsThisMonth += 1;
+			}
+		}
+
+		const recentTransactions = transactions.slice(0, limit);
+
+		const recentLogs = await Promise.all(
+			recentTransactions.map(async (transaction) => {
+				const [items, user] = await Promise.all([
+					ctx.db
+						.query("transaction_items")
+						.withIndex("by_org_id_and_transaction_id", (q) =>
+							q
+								.eq("org_id", organization._id)
+								.eq("transaction_id", transaction._id),
+						)
+						.take(5),
+					ctx.db.get(transaction.user_id),
+				]);
+
+				const item = items[0];
+				const batch = item?.batch_id ? await ctx.db.get(item.batch_id) : null;
+
+				const userName = user
+					? `${user.first_name} ${user.last_name}`.trim()
+					: "Unknown User";
+
+				return {
+					transaction_id: transaction._id,
+					batch_code: batch?.batch_code ?? "",
+					product_name: item?.product_name_snapshot ?? "Unknown",
+					adjusted_qty: item?.quantity ?? 0,
+					reason: transaction.event_reason,
+					created_at: transaction.created_at,
+					user_name: userName,
+				};
+			}),
+		);
+
+		return {
+			total_adjustments_today: totalAdjustmentsToday,
+			total_adjustments_this_week: totalAdjustmentsThisWeek,
+			total_adjustments_this_month: totalAdjustmentsThisMonth,
+			recent_logs: recentLogs,
+		};
 	},
 });
