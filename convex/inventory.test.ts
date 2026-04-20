@@ -6,7 +6,7 @@ import {
 	seedMembership,
 	seedOrganization,
 	seedUser,
-	} from "./test-utils.test";
+} from "./test-utils.test";
 
 describe("inventory intake", () => {
 	it("creates inbound receipt and records immutable transaction history", async () => {
@@ -256,9 +256,12 @@ describe("inventory intake", () => {
 			min_stock_level: 1,
 		});
 
-		const foreignSupplierId = await ownerB.mutation(api.suppliers.createSupplier, {
-			name: "Foreign Supplier",
-		});
+		const foreignSupplierId = await ownerB.mutation(
+			api.suppliers.createSupplier,
+			{
+				name: "Foreign Supplier",
+			},
+		);
 
 		await expect(
 			ownerA.mutation(api.inventory.createInboundReceipt, {

@@ -1,6 +1,10 @@
 import type { Id } from "./_generated/dataModel";
 import { mutation } from "./_generated/server";
-import { getAuthenticatedIdentity, getClerkOrgId } from "./helpers/auth";
+import {
+	getAuthenticatedIdentity,
+	getClerkOrgId,
+	getStringClaim,
+} from "./helpers/auth";
 import { getActiveOrganizationByClerkId } from "./helpers/tenant";
 
 export const syncCurrentClerkOrg = mutation({
@@ -8,6 +12,7 @@ export const syncCurrentClerkOrg = mutation({
 	handler: async (ctx) => {
 		const identity = await getAuthenticatedIdentity(ctx);
 		const clerkOrgId = getClerkOrgId(identity);
+		const hasClerkOrgClaim = Boolean(getStringClaim(identity, "org_id"));
 		if (!clerkOrgId) {
 			throw new Error("Active organization required");
 		}
@@ -19,6 +24,13 @@ export const syncCurrentClerkOrg = mutation({
 					clerk_org_id: clerkOrgId,
 					name: identity.name ?? "Organization",
 					status: "active",
+					onboarding_status: "profile_pending",
+					business_name: undefined,
+					business_sector: undefined,
+					business_type: undefined,
+					business_age_range: undefined,
+					business_address: undefined,
+					business_logo_file_id: undefined,
 					archived_at: undefined,
 				});
 
@@ -38,7 +50,11 @@ export const syncCurrentClerkOrg = mutation({
 				first_name: identity.givenName ?? "",
 				last_name: identity.familyName ?? "",
 				email: identity.email ?? tokenIdentifier,
-				role: identity["org_role"] === "admin" ? "owner" : "staff",
+				role: hasClerkOrgClaim
+					? identity["org_role"] === "admin"
+						? "owner"
+						: "staff"
+					: "owner",
 			});
 		}
 

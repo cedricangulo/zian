@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { type MutationCtx, mutation, query } from "./_generated/server";
 import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext } from "./helpers/context";
 
@@ -78,9 +78,7 @@ async function expandRequirements(
 			}
 
 			for (const line of recipeLines) {
-				const ingredientProduct = await ctx.db.get(
-					line.ingredient_product_id,
-				);
+				const ingredientProduct = await ctx.db.get(line.ingredient_product_id);
 				if (!ingredientProduct || ingredientProduct.org_id !== orgId) {
 					throw new Error(
 						`Ingredient not found for recipe of "${product.name}"`,
@@ -294,7 +292,6 @@ export const createDispatch = mutation({
 		};
 	},
 });
-
 
 // ---------------------------------------------------------------------------
 // Queries

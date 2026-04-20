@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Nunito, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/app/providers";
@@ -158,9 +158,7 @@ export default function RootLayout({
 				`}
 			</Script>
 			<body className="antialiased">
-				<Providers>
-					{children}
-				</Providers>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);

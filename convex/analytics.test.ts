@@ -65,8 +65,18 @@ describe("analytics: asset valuation", () => {
 		});
 
 		// Two batches: 100 kg @ ₱10, 50 kg @ ₱20
-		await seedBatch(owner, { product_id: productId, qty: 100, cost: 10, batch_code: "AV-B1" });
-		await seedBatch(owner, { product_id: productId, qty: 50, cost: 20, batch_code: "AV-B2" });
+		await seedBatch(owner, {
+			product_id: productId,
+			qty: 100,
+			cost: 10,
+			batch_code: "AV-B1",
+		});
+		await seedBatch(owner, {
+			product_id: productId,
+			qty: 50,
+			cost: 20,
+			batch_code: "AV-B2",
+		});
 
 		const result = await owner.query(api.analytics.getAssetValuation, {});
 
@@ -121,8 +131,18 @@ describe("analytics: asset valuation", () => {
 		const productA = await seedProduct(owner, { sku: "AV-A", name: "Sugar" });
 		const productB = await seedProduct(owner, { sku: "AV-B", name: "Salt" });
 
-		await seedBatch(owner, { product_id: productA, qty: 100, cost: 5, batch_code: "AV-MA" });
-		await seedBatch(owner, { product_id: productB, qty: 200, cost: 2, batch_code: "AV-MB" });
+		await seedBatch(owner, {
+			product_id: productA,
+			qty: 100,
+			cost: 5,
+			batch_code: "AV-MA",
+		});
+		await seedBatch(owner, {
+			product_id: productB,
+			qty: 200,
+			cost: 2,
+			batch_code: "AV-MB",
+		});
 
 		const result = await owner.query(api.analytics.getAssetValuation, {});
 
@@ -144,8 +164,16 @@ describe("analytics: asset valuation", () => {
 			tokenIdentifier: "tid_av_iso_b",
 		});
 
-		const productB = await seedProduct(ownerB, { sku: "AV-ISO-B", name: "Org B Stock" });
-		await seedBatch(ownerB, { product_id: productB, qty: 1000, cost: 100, batch_code: "AV-ISO-B1" });
+		const productB = await seedProduct(ownerB, {
+			sku: "AV-ISO-B",
+			name: "Org B Stock",
+		});
+		await seedBatch(ownerB, {
+			product_id: productB,
+			qty: 1000,
+			cost: 100,
+			batch_code: "AV-ISO-B1",
+		});
 
 		// Org A should see zero value even though Org B has lots of stock
 		const resultA = await ownerA.query(api.analytics.getAssetValuation, {});
@@ -165,7 +193,10 @@ describe("analytics: dead stock", () => {
 			tokenIdentifier: "tid_ds_basic",
 		});
 
-		const productId = await seedProduct(owner, { sku: "DS-001", name: "Old Flour" });
+		const productId = await seedProduct(owner, {
+			sku: "DS-001",
+			name: "Old Flour",
+		});
 
 		// Manually seed a batch with an old received_at timestamp (120 days ago)
 		const oldReceivedAt = Date.now() - 120 * 24 * 60 * 60 * 1000;
@@ -198,7 +229,10 @@ describe("analytics: dead stock", () => {
 			tokenIdentifier: "tid_ds_fresh",
 		});
 
-		const productId = await seedProduct(owner, { sku: "DS-FRESH", name: "Fresh Stock" });
+		const productId = await seedProduct(owner, {
+			sku: "DS-FRESH",
+			name: "Fresh Stock",
+		});
 		await seedBatch(owner, {
 			product_id: productId,
 			qty: 100,
@@ -221,7 +255,10 @@ describe("analytics: dead stock", () => {
 			tokenIdentifier: "tid_ds_depleted",
 		});
 
-		const productId = await seedProduct(owner, { sku: "DS-DEP", name: "Depleted Item" });
+		const productId = await seedProduct(owner, {
+			sku: "DS-DEP",
+			name: "Depleted Item",
+		});
 		const oldReceivedAt = Date.now() - 120 * 24 * 60 * 60 * 1000;
 
 		await t.run(async (ctx) => {
@@ -262,8 +299,16 @@ describe("admin: platform usage", () => {
 
 		// Seed a second org with two users
 		const orgId2 = await seedOrganization(t, { clerkOrgId: "org_sa_tenant2" });
-		await seedUser(t, { orgId: orgId2, tokenIdentifier: "tid_sa_t2u1", role: "owner" });
-		await seedUser(t, { orgId: orgId2, tokenIdentifier: "tid_sa_t2u2", role: "staff" });
+		await seedUser(t, {
+			orgId: orgId2,
+			tokenIdentifier: "tid_sa_t2u1",
+			role: "owner",
+		});
+		await seedUser(t, {
+			orgId: orgId2,
+			tokenIdentifier: "tid_sa_t2u2",
+			role: "staff",
+		});
 
 		const superAdmin = asOrgUser(t, {
 			clerkOrgId: "org_sa_platform",
@@ -285,15 +330,21 @@ describe("admin: platform usage", () => {
 			tokenIdentifier: "tid_sa_blocked",
 		});
 
-		await expect(
-			owner.query(api.admin.getPlatformUsage, {}),
-		).rejects.toThrow("Unauthorized");
+		await expect(owner.query(api.admin.getPlatformUsage, {})).rejects.toThrow(
+			"Unauthorized",
+		);
 	});
 
 	it("blocks staff from platform usage query", async () => {
 		const t = createTestBackend();
-		const orgId = await seedOrganization(t, { clerkOrgId: "org_sa_staff_block" });
-		await seedUser(t, { orgId, tokenIdentifier: "tid_sa_staff", role: "staff" });
+		const orgId = await seedOrganization(t, {
+			clerkOrgId: "org_sa_staff_block",
+		});
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_sa_staff",
+			role: "staff",
+		});
 
 		const staff = asOrgUser(t, {
 			clerkOrgId: "org_sa_staff_block",
@@ -301,8 +352,8 @@ describe("admin: platform usage", () => {
 			orgRole: "member",
 		});
 
-		await expect(
-			staff.query(api.admin.getPlatformUsage, {}),
-		).rejects.toThrow("Unauthorized");
+		await expect(staff.query(api.admin.getPlatformUsage, {})).rejects.toThrow(
+			"Unauthorized",
+		);
 	});
 });

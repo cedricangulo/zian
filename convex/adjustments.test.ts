@@ -96,9 +96,7 @@ describe("stock adjustments", () => {
 			const items = await ctx.db
 				.query("transaction_items")
 				.withIndex("by_org_id_and_transaction_id", (q) =>
-					q
-						.eq("org_id", orgId)
-						.eq("transaction_id", result.transaction_id),
+					q.eq("org_id", orgId).eq("transaction_id", result.transaction_id),
 				)
 				.take(10);
 			return { txn, items };

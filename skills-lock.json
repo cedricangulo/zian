@@ -1,70 +1,70 @@
 {
-  "version": 1,
-  "skills": {
-    "clerk": {
-      "source": "clerk/skills",
-      "sourceType": "github",
-      "computedHash": "404a0bfcaa137641b06938effa44dffb27f050af3501f4df574453c6fd9a16ae"
-    },
-    "clerk-custom-ui": {
-      "source": "clerk/skills",
-      "sourceType": "github",
-      "computedHash": "b45ddd91c4924e8a74cb5272e769b06a5bbbde329983e7e565e6902b1cc80ded"
-    },
-    "clerk-nextjs-patterns": {
-      "source": "clerk/skills",
-      "sourceType": "github",
-      "computedHash": "f397ece3da422044705341ae85940fc3c36de8f5970e36146dda6ae6955974e2"
-    },
-    "convex-create-component": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "computedHash": "770b2f36955024f066da5e12e7fa94a2f4416bb7ca2d3ae6e8948c99e2dfc7b6"
-    },
-    "convex-migration-helper": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "computedHash": "ea0d0bec29573dc668f06b13969e6c5c7bf2b6014c314eacae2c2389353eda41"
-    },
-    "convex-performance-audit": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "computedHash": "b176537653f4d22ecb30bbc441b84512a2936ef5abf785bef24700ba3d73ef6c"
-    },
-    "convex-quickstart": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "computedHash": "f97654ffe564f0dacf9d5f9216c43bb39d2ba6d07332df62241071e7a021836f"
-    },
-    "convex-setup-auth": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "computedHash": "36d7a5c86a60a2eb75a5590e16ac5a92a93dc010681ad8c7dbc9d456dc426895"
-    },
-    "next-best-practices": {
-      "source": "vercel-labs/next-skills",
-      "sourceType": "github",
-      "computedHash": "db85045827ebeb83ac8dbc992b69188755eeb74dcf01cbf5e694d58aa494a106"
-    },
-    "next-cache-components": {
-      "source": "vercel-labs/next-skills",
-      "sourceType": "github",
-      "computedHash": "f835d8226c28abf012cc013928e2627c8a7a046de61127ef229be1711bd1f255"
-    },
-    "next-upgrade": {
-      "source": "vercel-labs/next-skills",
-      "sourceType": "github",
-      "computedHash": "e3aeb1f9e8a68d24df0c1c2e3c8ab97ede09a7251a2c76988318d02254346979"
-    },
-    "shadcn": {
-      "source": "shadcn/ui",
-      "sourceType": "github",
-      "computedHash": "642a177bee320618caa49f5106cadb4e7594c606e867f61ba7b56d19cf745cd5"
-    },
-    "vercel-react-best-practices": {
-      "source": "vercel-labs/agent-skills",
-      "sourceType": "github",
-      "computedHash": "257b84bf218a7d3b2cba56e929b7e933cf71cb89f2e24ab601759c599d1c23f2"
-    }
-  }
+	"version": 1,
+	"skills": {
+		"clerk": {
+			"source": "clerk/skills",
+			"sourceType": "github",
+			"computedHash": "404a0bfcaa137641b06938effa44dffb27f050af3501f4df574453c6fd9a16ae"
+		},
+		"clerk-custom-ui": {
+			"source": "clerk/skills",
+			"sourceType": "github",
+			"computedHash": "b45ddd91c4924e8a74cb5272e769b06a5bbbde329983e7e565e6902b1cc80ded"
+		},
+		"clerk-nextjs-patterns": {
+			"source": "clerk/skills",
+			"sourceType": "github",
+			"computedHash": "f397ece3da422044705341ae85940fc3c36de8f5970e36146dda6ae6955974e2"
+		},
+		"convex-create-component": {
+			"source": "get-convex/agent-skills",
+			"sourceType": "github",
+			"computedHash": "770b2f36955024f066da5e12e7fa94a2f4416bb7ca2d3ae6e8948c99e2dfc7b6"
+		},
+		"convex-migration-helper": {
+			"source": "get-convex/agent-skills",
+			"sourceType": "github",
+			"computedHash": "ea0d0bec29573dc668f06b13969e6c5c7bf2b6014c314eacae2c2389353eda41"
+		},
+		"convex-performance-audit": {
+			"source": "get-convex/agent-skills",
+			"sourceType": "github",
+			"computedHash": "b176537653f4d22ecb30bbc441b84512a2936ef5abf785bef24700ba3d73ef6c"
+		},
+		"convex-quickstart": {
+			"source": "get-convex/agent-skills",
+			"sourceType": "github",
+			"computedHash": "f97654ffe564f0dacf9d5f9216c43bb39d2ba6d07332df62241071e7a021836f"
+		},
+		"convex-setup-auth": {
+			"source": "get-convex/agent-skills",
+			"sourceType": "github",
+			"computedHash": "36d7a5c86a60a2eb75a5590e16ac5a92a93dc010681ad8c7dbc9d456dc426895"
+		},
+		"next-best-practices": {
+			"source": "vercel-labs/next-skills",
+			"sourceType": "github",
+			"computedHash": "db85045827ebeb83ac8dbc992b69188755eeb74dcf01cbf5e694d58aa494a106"
+		},
+		"next-cache-components": {
+			"source": "vercel-labs/next-skills",
+			"sourceType": "github",
+			"computedHash": "f835d8226c28abf012cc013928e2627c8a7a046de61127ef229be1711bd1f255"
+		},
+		"next-upgrade": {
+			"source": "vercel-labs/next-skills",
+			"sourceType": "github",
+			"computedHash": "e3aeb1f9e8a68d24df0c1c2e3c8ab97ede09a7251a2c76988318d02254346979"
+		},
+		"shadcn": {
+			"source": "shadcn/ui",
+			"sourceType": "github",
+			"computedHash": "642a177bee320618caa49f5106cadb4e7594c606e867f61ba7b56d19cf745cd5"
+		},
+		"vercel-react-best-practices": {
+			"source": "vercel-labs/agent-skills",
+			"sourceType": "github",
+			"computedHash": "257b84bf218a7d3b2cba56e929b7e933cf71cb89f2e24ab601759c599d1c23f2"
+		}
+	}
 }

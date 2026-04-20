@@ -1,15 +1,14 @@
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 import type { ReactNode } from "react";
-
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { Button } from "@/components/ui/button";
 import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-// import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (

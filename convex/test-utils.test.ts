@@ -1,6 +1,6 @@
+import type { UserIdentity } from "convex/server";
 import { convexTest } from "convex-test";
 import { test } from "vitest";
-import type { UserIdentity } from "convex/server";
 import type { Id } from "./_generated/dataModel";
 import schema from "./schema";
 

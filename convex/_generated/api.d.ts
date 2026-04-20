@@ -20,7 +20,9 @@ import type * as helpers_audit from "../helpers/audit.js";
 import type * as helpers_auth from "../helpers/auth.js";
 import type * as helpers_context from "../helpers/context.js";
 import type * as helpers_tenant from "../helpers/tenant.js";
+import type * as helpers_validators from "../helpers/validators.js";
 import type * as inventory from "../inventory.js";
+import type * as onboarding from "../onboarding.js";
 import type * as recipes from "../recipes.js";
 import type * as suppliers from "../suppliers.js";
 
@@ -43,7 +45,9 @@ declare const fullApi: ApiFromModules<{
   "helpers/auth": typeof helpers_auth;
   "helpers/context": typeof helpers_context;
   "helpers/tenant": typeof helpers_tenant;
+  "helpers/validators": typeof helpers_validators;
   inventory: typeof inventory;
+  onboarding: typeof onboarding;
   recipes: typeof recipes;
   suppliers: typeof suppliers;
 }>;

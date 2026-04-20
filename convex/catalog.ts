@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { type MutationCtx, mutation, query } from "./_generated/server";
 import { computeDelta, writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
 
@@ -106,7 +106,13 @@ export const createProduct = mutation({
 			actionType: "create",
 			entityAffected: "products",
 			recordId: productId,
-			changeLog: { next: { sku: args.sku, name: args.name, product_type: args.product_type } },
+			changeLog: {
+				next: {
+					sku: args.sku,
+					name: args.name,
+					product_type: args.product_type,
+				},
+			},
 		});
 
 		return productId;
@@ -145,8 +151,7 @@ export const updateProduct = mutation({
 		await ensureUniqueSku(ctx, organization._id, args.sku, args.product_id);
 
 		const patchData = {
-			category_id:
-				args.category_id === null ? undefined : args.category_id,
+			category_id: args.category_id === null ? undefined : args.category_id,
 			sku: args.sku,
 			name: args.name,
 			base_unit: args.base_unit,
@@ -200,7 +205,10 @@ export const archiveProduct = mutation({
 			actionType: "archive",
 			entityAffected: "products",
 			recordId: args.product_id,
-			changeLog: { previous: { archived_at: undefined }, next: { archived_at: archivedAt } },
+			changeLog: {
+				previous: { archived_at: undefined },
+				next: { archived_at: archivedAt },
+			},
 		});
 
 		return args.product_id;

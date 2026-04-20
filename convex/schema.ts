@@ -1,5 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import {
+	businessAgeRange,
+	businessSector,
+	onboardingStatus,
+	profileSex,
+} from "./helpers/validators";
 
 const organizationStatus = v.union(
 	v.literal("active"),
@@ -51,10 +57,19 @@ export default defineSchema({
 		clerk_org_id: v.string(),
 		name: v.string(),
 		status: organizationStatus,
+		onboarding_status: v.optional(onboardingStatus),
+		business_name: v.optional(v.string()),
+		business_sector: v.optional(businessSector),
+		business_type: v.optional(v.string()),
+		business_age_range: v.optional(businessAgeRange),
+		business_address: v.optional(v.string()),
+		business_logo_file_id: v.optional(v.string()),
 		archived_at: v.optional(v.number()),
 	})
 		.index("by_clerk_org_id", ["clerk_org_id"])
 		.index("by_status", ["status"])
+		.index("by_status_and_onboarding_status", ["status", "onboarding_status"])
+		.index("by_business_sector", ["business_sector"])
 		.index("by_archived_at", ["archived_at"]),
 
 	users: defineTable({
@@ -62,12 +77,16 @@ export default defineSchema({
 		token_identifier: v.string(),
 		clerk_user_id: v.string(),
 		first_name: v.string(),
+		middle_name: v.optional(v.string()),
 		last_name: v.string(),
+		contact_number: v.optional(v.string()),
+		sex: v.optional(profileSex),
 		email: v.string(),
 		role: userRole,
 	})
 		.index("by_org_id", ["org_id"])
 		.index("by_org_id_and_role", ["org_id", "role"])
+		.index("by_org_id_and_contact_number", ["org_id", "contact_number"])
 		.index("by_org_id_and_token_identifier", ["org_id", "token_identifier"])
 		.index("by_clerk_user_id", ["clerk_user_id"])
 		.index("by_org_id_and_email", ["org_id", "email"]),

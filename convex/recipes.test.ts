@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { api } from "./_generated/api";
-import { seedMembership, createTestBackend } from "./test-utils.test";
+import { createTestBackend, seedMembership } from "./test-utils.test";
 
 describe("recipes and BOM rules", () => {
 	it("adds and lists recipe lines for a composite product", async () => {
@@ -231,17 +231,20 @@ describe("recipes and BOM rules", () => {
 			min_stock_level: 0,
 		});
 
-		const foreignIngredientId = await ownerB.mutation(api.catalog.createProduct, {
-			sku: "TENANT-B-ING",
-			name: "Tenant B Ingredient",
-			base_unit: "pcs",
-			product_type: "raw_material",
-			sellable: false,
-			stock_tracked: true,
-			track_expiry: true,
-			is_bom: false,
-			min_stock_level: 1,
-		});
+		const foreignIngredientId = await ownerB.mutation(
+			api.catalog.createProduct,
+			{
+				sku: "TENANT-B-ING",
+				name: "Tenant B Ingredient",
+				base_unit: "pcs",
+				product_type: "raw_material",
+				sellable: false,
+				stock_tracked: true,
+				track_expiry: true,
+				is_bom: false,
+				min_stock_level: 1,
+			},
+		);
 
 		await expect(
 			ownerA.mutation(api.recipes.addRecipeLine, {

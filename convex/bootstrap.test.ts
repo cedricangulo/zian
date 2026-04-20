@@ -22,6 +22,7 @@ describe("bootstrap.syncCurrentClerkOrg", () => {
 		const organization = await t.run(async (ctx) => await ctx.db.get(orgId));
 		expect(organization?.clerk_org_id).toBe("org_clerk_1");
 		expect(organization?.status).toBe("active");
+		expect(organization?.onboarding_status).toBe("profile_pending");
 
 		const users = await t.run(async (ctx) => {
 			return await ctx.db
@@ -46,8 +47,14 @@ describe("bootstrap.syncCurrentClerkOrg", () => {
 			org_role: "admin",
 		});
 
-		const firstOrgId = await actor.mutation(api.bootstrap.syncCurrentClerkOrg, {});
-		const secondOrgId = await actor.mutation(api.bootstrap.syncCurrentClerkOrg, {});
+		const firstOrgId = await actor.mutation(
+			api.bootstrap.syncCurrentClerkOrg,
+			{},
+		);
+		const secondOrgId = await actor.mutation(
+			api.bootstrap.syncCurrentClerkOrg,
+			{},
+		);
 
 		expect(secondOrgId).toBe(firstOrgId);
 
@@ -70,16 +77,30 @@ describe("bootstrap.syncCurrentClerkOrg", () => {
 		expect(users).toHaveLength(1);
 	});
 
-	it("requires an active organization claim in identity", async () => {
+	it("provisions a personal owner org when identity has no org claim", async () => {
 		const t = createTestBackend();
 		const actor = t.withIdentity({
 			tokenIdentifier: "tid_no_org",
 			subject: "clerk_user_no_org",
 			issuer: "https://clerk.test",
+			email: "no-org@example.test",
 		});
 
-		await expect(
-			actor.mutation(api.bootstrap.syncCurrentClerkOrg, {}),
-		).rejects.toThrow("Active organization required");
+		const orgId = await actor.mutation(api.bootstrap.syncCurrentClerkOrg, {});
+
+		const organization = await t.run(async (ctx) => await ctx.db.get(orgId));
+		expect(organization?.clerk_org_id).toBe("personal_clerk_user_no_org");
+		expect(organization?.status).toBe("active");
+		expect(organization?.onboarding_status).toBe("profile_pending");
+
+		const users = await t.run(async (ctx) => {
+			return await ctx.db
+				.query("users")
+				.withIndex("by_org_id", (q) => q.eq("org_id", orgId))
+				.take(10);
+		});
+		expect(users).toHaveLength(1);
+		expect(users[0]?.token_identifier).toBe("tid_no_org");
+		expect(users[0]?.role).toBe("owner");
 	});
 });

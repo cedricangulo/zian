@@ -63,7 +63,10 @@ export const getPlatformUsage = query({
 			user_count: userCountMap.get(org._id) ?? 0,
 		}));
 
-		const totalUsers = userCountsPerOrg.reduce((sum, { count }) => sum + count, 0);
+		const totalUsers = userCountsPerOrg.reduce(
+			(sum, { count }) => sum + count,
+			0,
+		);
 
 		return {
 			total_organizations: organizations.length,

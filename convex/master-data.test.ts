@@ -85,7 +85,9 @@ describe("supplier CRUD", () => {
 		expect(suppliers).toHaveLength(1);
 		expect(suppliers[0]?.phone_number).toBe("555-0101");
 
-		await owner.mutation(api.suppliers.deleteSupplier, { supplier_id: supplierId });
+		await owner.mutation(api.suppliers.deleteSupplier, {
+			supplier_id: supplierId,
+		});
 
 		const afterDelete = await owner.query(api.suppliers.listSuppliers, {});
 		expect(afterDelete).toHaveLength(0);

@@ -22,7 +22,17 @@ export function getStringClaim(
 export function getClerkOrgId(
 	identity: Awaited<ReturnType<QueryCtx["auth"]["getUserIdentity"]>>,
 ): string | undefined {
-	return getStringClaim(identity, "org_id");
+	const orgId = getStringClaim(identity, "org_id");
+	if (orgId) {
+		return orgId;
+	}
+
+	if (!identity?.subject) {
+		return undefined;
+	}
+
+	// Fallback for first-time owner signups before Clerk org claims exist.
+	return `personal_${identity.subject}`;
 }
 
 export function getClerkOrgRole(

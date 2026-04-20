@@ -239,9 +239,9 @@ describe("audit log", () => {
 			orgRole: "member",
 		});
 
-		await expect(
-			staff.query(api.audit.listAuditLogs, {}),
-		).rejects.toThrow("Unauthorized");
+		await expect(staff.query(api.audit.listAuditLogs, {})).rejects.toThrow(
+			"Unauthorized",
+		);
 	});
 
 	// -----------------------------------------------------------------------
@@ -262,7 +262,9 @@ describe("audit log", () => {
 
 		const logsA = await ownerA.query(api.audit.listAuditLogs, {});
 		const orgBProductLog = logsA.find(
-			(l) => (l.change_log as { next?: { sku?: string } })?.next?.sku === "ISO-B-001",
+			(l) =>
+				(l.change_log as { next?: { sku?: string } })?.next?.sku ===
+				"ISO-B-001",
 		);
 
 		expect(orgBProductLog).toBeUndefined();

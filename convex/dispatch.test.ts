@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { api } from "./_generated/api";
 import {
-	asOrgUser,
+	type asOrgUser,
 	createTestBackend,
 	seedMembership,
 	seedOrganization,
@@ -78,9 +78,24 @@ describe("dispatch and FEFO", () => {
 			base_unit: "L",
 			track_expiry: true,
 			batches: [
-				{ batch_code: "B-FAR", cost_price: 10, quantity: 20, expiry_date: now + 30 * day },
-				{ batch_code: "B-NEAR", cost_price: 12, quantity: 10, expiry_date: now + 5 * day },
-				{ batch_code: "B-MID", cost_price: 11, quantity: 15, expiry_date: now + 15 * day },
+				{
+					batch_code: "B-FAR",
+					cost_price: 10,
+					quantity: 20,
+					expiry_date: now + 30 * day,
+				},
+				{
+					batch_code: "B-NEAR",
+					cost_price: 12,
+					quantity: 10,
+					expiry_date: now + 5 * day,
+				},
+				{
+					batch_code: "B-MID",
+					cost_price: 11,
+					quantity: 15,
+					expiry_date: now + 15 * day,
+				},
 			],
 		});
 
@@ -106,13 +121,13 @@ describe("dispatch and FEFO", () => {
 
 		// Sorted by expiry_date ascending
 		expect(batches[0]?.batch_code).toBe("B-NEAR");
-		expect(batches[0]?.remaining_qty).toBe(0);   // 10 - 10
+		expect(batches[0]?.remaining_qty).toBe(0); // 10 - 10
 
 		expect(batches[1]?.batch_code).toBe("B-MID");
-		expect(batches[1]?.remaining_qty).toBe(7);    // 15 - 8
+		expect(batches[1]?.remaining_qty).toBe(7); // 15 - 8
 
 		expect(batches[2]?.batch_code).toBe("B-FAR");
-		expect(batches[2]?.remaining_qty).toBe(20);   // untouched
+		expect(batches[2]?.remaining_qty).toBe(20); // untouched
 	});
 
 	// -----------------------------------------------------------------------
@@ -135,7 +150,12 @@ describe("dispatch and FEFO", () => {
 			base_unit: "g",
 			track_expiry: true,
 			batches: [
-				{ batch_code: "CB-01", cost_price: 0.05, quantity: 1000, expiry_date: now + 60 * day },
+				{
+					batch_code: "CB-01",
+					cost_price: 0.05,
+					quantity: 1000,
+					expiry_date: now + 60 * day,
+				},
 			],
 		});
 
@@ -145,7 +165,12 @@ describe("dispatch and FEFO", () => {
 			base_unit: "ml",
 			track_expiry: true,
 			batches: [
-				{ batch_code: "MK-01", cost_price: 0.02, quantity: 5000, expiry_date: now + 10 * day },
+				{
+					batch_code: "MK-01",
+					cost_price: 0.02,
+					quantity: 5000,
+					expiry_date: now + 10 * day,
+				},
 			],
 		});
 
@@ -220,9 +245,7 @@ describe("dispatch and FEFO", () => {
 			name: "Nails",
 			base_unit: "pcs",
 			track_expiry: false,
-			batches: [
-				{ batch_code: "N-01", cost_price: 0.1, quantity: 5 },
-			],
+			batches: [{ batch_code: "N-01", cost_price: 0.1, quantity: 5 }],
 		});
 
 		await expect(
@@ -247,9 +270,7 @@ describe("dispatch and FEFO", () => {
 			name: "Screws",
 			base_unit: "pcs",
 			track_expiry: false,
-			batches: [
-				{ batch_code: "SC-01", cost_price: 0.5, quantity: 100 },
-			],
+			batches: [{ batch_code: "SC-01", cost_price: 0.5, quantity: 100 }],
 		});
 
 		const result = await owner.mutation(api.dispatch.createDispatch, {
@@ -265,9 +286,7 @@ describe("dispatch and FEFO", () => {
 			const items = await ctx.db
 				.query("transaction_items")
 				.withIndex("by_org_id_and_transaction_id", (q) =>
-					q
-						.eq("org_id", orgId)
-						.eq("transaction_id", result.transaction_id),
+					q.eq("org_id", orgId).eq("transaction_id", result.transaction_id),
 				)
 				.take(50);
 			return { transaction, items };
@@ -302,9 +321,7 @@ describe("dispatch and FEFO", () => {
 			name: "Foreign Product",
 			base_unit: "pcs",
 			track_expiry: false,
-			batches: [
-				{ batch_code: "ISO-B1", cost_price: 5, quantity: 50 },
-			],
+			batches: [{ batch_code: "ISO-B1", cost_price: 5, quantity: 50 }],
 		});
 
 		await expect(
@@ -344,9 +361,7 @@ describe("dispatch and FEFO", () => {
 			name: "Bolts",
 			base_unit: "pcs",
 			track_expiry: false,
-			batches: [
-				{ batch_code: "BLT-01", cost_price: 1, quantity: 50 },
-			],
+			batches: [{ batch_code: "BLT-01", cost_price: 1, quantity: 50 }],
 		});
 
 		await expect(
@@ -381,9 +396,24 @@ describe("dispatch and FEFO", () => {
 			base_unit: "kg",
 			track_expiry: true,
 			batches: [
-				{ batch_code: "SU-A", cost_price: 2, quantity: 5, expiry_date: now + 3 * day },
-				{ batch_code: "SU-B", cost_price: 2.5, quantity: 5, expiry_date: now + 7 * day },
-				{ batch_code: "SU-C", cost_price: 3, quantity: 5, expiry_date: now + 14 * day },
+				{
+					batch_code: "SU-A",
+					cost_price: 2,
+					quantity: 5,
+					expiry_date: now + 3 * day,
+				},
+				{
+					batch_code: "SU-B",
+					cost_price: 2.5,
+					quantity: 5,
+					expiry_date: now + 7 * day,
+				},
+				{
+					batch_code: "SU-C",
+					cost_price: 3,
+					quantity: 5,
+					expiry_date: now + 14 * day,
+				},
 			],
 		});
 
@@ -398,9 +428,7 @@ describe("dispatch and FEFO", () => {
 			const items = await ctx.db
 				.query("transaction_items")
 				.withIndex("by_org_id_and_transaction_id", (q) =>
-					q
-						.eq("org_id", orgId)
-						.eq("transaction_id", result.transaction_id),
+					q.eq("org_id", orgId).eq("transaction_id", result.transaction_id),
 				)
 				.take(50);
 			return items;
@@ -428,9 +456,7 @@ describe("dispatch and FEFO", () => {
 			name: "Cement",
 			base_unit: "bag",
 			track_expiry: false,
-			batches: [
-				{ batch_code: "CEM-01", cost_price: 15, quantity: 50 },
-			],
+			batches: [{ batch_code: "CEM-01", cost_price: 15, quantity: 50 }],
 		});
 
 		const dispatch = await owner.mutation(api.dispatch.createDispatch, {

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
+import { query } from "./_generated/server";
 import { requireOwnerContext } from "./helpers/context";
 
 // ---------------------------------------------------------------------------
@@ -52,9 +52,7 @@ export const getAssetValuation = query({
 
 		// Enrich with product names — fetch in parallel
 		const productIds = Array.from(productTotals.keys());
-		const products = await Promise.all(
-			productIds.map((id) => ctx.db.get(id)),
-		);
+		const products = await Promise.all(productIds.map((id) => ctx.db.get(id)));
 
 		const breakdown = productIds
 			.map((id, i) => {

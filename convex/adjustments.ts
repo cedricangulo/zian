@@ -134,9 +134,7 @@ export const listAdjustments = query({
 		const transactions = await ctx.db
 			.query("transactions")
 			.withIndex("by_org_id_and_movement_type", (q) =>
-				q
-					.eq("org_id", organization._id)
-					.eq("movement_type", "adjustment"),
+				q.eq("org_id", organization._id).eq("movement_type", "adjustment"),
 			)
 			.order("desc")
 			.take(limit);

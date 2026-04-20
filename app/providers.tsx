@@ -1,8 +1,8 @@
 "use client";
 
 import { ClerkProvider } from "@clerk/nextjs";
-import type { ReactNode } from "react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import type { ReactNode } from "react";
 
 import ConvexClientProvider from "@/components/convex-client-provider";
 import { ThemeProvider } from "@/components/theme-provider";

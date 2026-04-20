@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, type QueryCtx } from "./_generated/server";
+import { type QueryCtx, query } from "./_generated/server";
 import { requireOwnerContext } from "./helpers/context";
 
 // ---------------------------------------------------------------------------
@@ -54,13 +54,13 @@ export const getAuditLogsByRecord = query({
 
 		const logs = await ctx.db
 			.query("audit_logs")
-				.withIndex("by_org_id_and_record_id", (q) =>
-					q.eq("org_id", organization._id).eq("record_id", args.record_id),
+			.withIndex("by_org_id_and_record_id", (q) =>
+				q.eq("org_id", organization._id).eq("record_id", args.record_id),
 			)
 			.order("desc")
-				.take(limit);
+			.take(limit);
 
-			return await enrichWithUserNames(ctx, logs);
+		return await enrichWithUserNames(ctx, logs);
 	},
 });
 
