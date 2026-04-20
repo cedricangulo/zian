@@ -3,6 +3,7 @@ import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
+import { resolveBatchCode, resolveSku } from "./helpers/identifiers";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EXPIRING_SOON_DAYS = 7;
@@ -13,6 +14,13 @@ const inventoryStatus = v.union(
 	v.literal("out_of_stock"),
 	v.literal("expiring"),
 	v.literal("expired"),
+);
+
+const productTypeValidator = v.union(
+	v.literal("raw_material"),
+	v.literal("packaging"),
+	v.literal("sellable"),
+	v.literal("composite"),
 );
 
 function getBatchStatus(
@@ -71,19 +79,11 @@ function ensurePositive(value: number, fieldLabel: string) {
 	}
 }
 
-function normalizeBatchCode(batchCode: string) {
-	const normalized = batchCode.trim();
-	if (!normalized) {
-		throw new Error("Batch code is required");
-	}
-	return normalized;
-}
-
 export const createInboundReceipt = mutation({
 	args: {
 		product_id: v.id("products"),
 		supplier_id: v.optional(v.id("suppliers")),
-		batch_code: v.string(),
+		batch_code: v.optional(v.string()),
 		cost_price: v.number(),
 		quantity: v.number(),
 		expiry_date: v.optional(v.number()),
@@ -92,7 +92,6 @@ export const createInboundReceipt = mutation({
 	handler: async (ctx, args) => {
 		const { organization, user } = await requireCurrentContext(ctx);
 
-		const batchCode = normalizeBatchCode(args.batch_code);
 		ensurePositive(args.cost_price, "Cost price");
 		ensurePositive(args.quantity, "Quantity");
 
@@ -120,16 +119,11 @@ export const createInboundReceipt = mutation({
 			}
 		}
 
-		const duplicateBatch = await ctx.db
-			.query("batches")
-			.withIndex("by_org_id_and_batch_code", (q) =>
-				q.eq("org_id", organization._id).eq("batch_code", batchCode),
-			)
-			.take(1);
-
-		if (duplicateBatch.length > 0) {
-			throw new Error("Batch code already exists in your organization");
-		}
+		const batchCode = await resolveBatchCode(
+			ctx,
+			organization._id,
+			args.batch_code,
+		);
 
 		const eventTime = Date.now();
 		const receivedAt = args.received_at ?? eventTime;
@@ -187,6 +181,167 @@ export const createInboundReceipt = mutation({
 			batch_id: batchId,
 			batch_code: batchCode,
 			received_at: receivedAt,
+			total_asset_value: args.quantity * args.cost_price,
+		};
+	},
+});
+
+export const createProductWithInitialBatch = mutation({
+	args: {
+		category_id: v.optional(v.id("categories")),
+		name: v.string(),
+		image_url: v.optional(v.string()),
+		product_type: productTypeValidator,
+		base_unit: v.string(),
+		sellable: v.boolean(),
+		stock_tracked: v.optional(v.boolean()),
+		track_expiry: v.boolean(),
+		is_bom: v.boolean(),
+		min_stock_level: v.optional(v.number()),
+		sku: v.optional(v.string()),
+		supplier_id: v.optional(v.id("suppliers")),
+		batch_code: v.optional(v.string()),
+		cost_price: v.number(),
+		quantity: v.number(),
+		expiry_date: v.optional(v.number()),
+		received_at: v.optional(v.number()),
+	},
+	handler: async (ctx, args) => {
+		const { organization, user } = await requireOwnerContext(ctx);
+
+		ensurePositive(args.cost_price, "Cost price");
+		ensurePositive(args.quantity, "Quantity");
+
+		if (args.received_at !== undefined && !Number.isFinite(args.received_at)) {
+			throw new Error("Received date is invalid");
+		}
+
+		if (args.expiry_date !== undefined && !Number.isFinite(args.expiry_date)) {
+			throw new Error("Expiry date is invalid");
+		}
+
+		if (args.track_expiry && args.expiry_date === undefined) {
+			throw new Error("Expiry date required for this product");
+		}
+
+		if (args.category_id) {
+			const category = await ctx.db.get(args.category_id);
+			if (!category || category.org_id !== organization._id) {
+				throw new Error("Category not found in your organization");
+			}
+		}
+
+		if (args.supplier_id) {
+			const supplier = await ctx.db.get(args.supplier_id);
+			if (!supplier || supplier.org_id !== organization._id) {
+				throw new Error("Supplier not found in your organization");
+			}
+		}
+
+		const sku = await resolveSku(
+			ctx,
+			organization._id,
+			args.product_type,
+			args.sku,
+		);
+
+		const eventTime = Date.now();
+		const receivedAt = args.received_at ?? eventTime;
+
+		const productId = await ctx.db.insert("products", {
+			org_id: organization._id,
+			category_id: args.category_id,
+			sku,
+			name: args.name,
+			image_url: args.image_url,
+			base_unit: args.base_unit,
+			product_type: args.product_type,
+			sellable: args.sellable,
+			stock_tracked: args.stock_tracked ?? true,
+			track_expiry: args.track_expiry,
+			is_bom: args.is_bom,
+			min_stock_level: args.min_stock_level ?? 0,
+			archived_at: undefined,
+		});
+
+		const batchCode = await resolveBatchCode(
+			ctx,
+			organization._id,
+			args.batch_code,
+		);
+
+		const batchId = await ctx.db.insert("batches", {
+			org_id: organization._id,
+			product_id: productId,
+			supplier_id: args.supplier_id,
+			batch_code: batchCode,
+			cost_price: args.cost_price,
+			initial_qty: args.quantity,
+			remaining_qty: args.quantity,
+			expiry_date: args.expiry_date,
+			received_at: receivedAt,
+		});
+
+		const transactionId = await ctx.db.insert("transactions", {
+			org_id: organization._id,
+			user_id: user._id,
+			movement_type: "inbound",
+			event_reason: "purchase",
+			created_at: eventTime,
+		});
+
+		await ctx.db.insert("transaction_items", {
+			org_id: organization._id,
+			transaction_id: transactionId,
+			product_id: productId,
+			batch_id: batchId,
+			product_name_snapshot: args.name,
+			base_unit_snapshot: args.base_unit,
+			quantity: args.quantity,
+			cost_at_event: args.cost_price,
+			created_at: eventTime,
+		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "products",
+			recordId: productId,
+			changeLog: {
+				next: {
+					sku,
+					name: args.name,
+					product_type: args.product_type,
+					image_url: args.image_url,
+				},
+			},
+		});
+
+		await writeAuditLog(ctx, {
+			orgId: organization._id,
+			userId: user._id,
+			actionType: "create",
+			entityAffected: "batches",
+			recordId: batchId,
+			changeLog: {
+				next: {
+					batch_code: batchCode,
+					product_name: args.name,
+					quantity: args.quantity,
+					cost_price: args.cost_price,
+				},
+			},
+		});
+
+		return {
+			product_id: productId,
+			sku,
+			transaction_id: transactionId,
+			batch_id: batchId,
+			batch_code: batchCode,
+			received_at: receivedAt,
+			total_asset_value: args.quantity * args.cost_price,
 		};
 	},
 });

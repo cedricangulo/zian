@@ -115,6 +115,7 @@ export default defineSchema({
 		category_id: v.optional(v.id("categories")),
 		sku: v.string(),
 		name: v.string(),
+		image_url: v.optional(v.string()),
 		base_unit: v.string(),
 		product_type: productType,
 		sellable: v.boolean(),

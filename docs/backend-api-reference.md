@@ -37,12 +37,14 @@ Scope: Convex backend functions exposed to the frontend team.
 	"track_expiry": false,
 	"is_bom": false,
 	"min_stock_level": 10,
+	"image_file_id": "image_file_abc123",
 	"archived_at": 1710001234567
 }
 ```
 
 - `archived_at` is omitted until the product is archived.
 - `category_id` is optional and omitted for uncategorized products.
+- `image_file_id` is optional and omitted when no image is uploaded.
 
 ### Category
 
@@ -392,7 +394,7 @@ Scope: Convex backend functions exposed to the frontend team.
 - Access: owner/admin only
 - Args:
 	- `category_id?: Id<"categories">`
-	- `sku: string`
+	- `sku?: string` (auto-generated if omitted as `{type_prefix}-{name_slug}-{counter}`)
 	- `name: string`
 	- `base_unit: string`
 	- `product_type: "raw_material" | "packaging" | "sellable" | "composite"`
@@ -401,6 +403,7 @@ Scope: Convex backend functions exposed to the frontend team.
 	- `track_expiry: boolean`
 	- `is_bom: boolean`
 	- `min_stock_level: number`
+	- `image_file_id?: string`
 - Returns: `Id<"products">`
 - Success response example:
 
@@ -408,6 +411,10 @@ Scope: Convex backend functions exposed to the frontend team.
 "products_01"
 ```
 
+- Behavior:
+	- If `sku` is omitted, auto-generates one using pattern `{product_type_prefix}-{name_slug}-{counter}`.
+	- Auto-generated SKU is unique per organization and product type.
+	- Examples: `RAW-EGG-001`, `PKG-STRAW-001`, `SELL-COKE-1`, `COMP-PIZZA-LG-001`
 - Errors:
 	- `Category not found in your organization`
 	- `SKU already exists in your organization`
@@ -448,6 +455,52 @@ Scope: Convex backend functions exposed to the frontend team.
 - Notes:
 	- This is a soft archive. The record stays in place and `archived_at` is set.
 	- The response is just the archived product id.
+
+#### `api.catalog.createProductWithInitialBatch`
+
+- Type: mutation
+- Access: owner/admin only
+- Args:
+	- `name: string`
+	- `base_unit: string`
+	- `product_type: "raw_material" | "packaging" | "sellable" | "composite"`
+	- `stock_tracked: boolean`
+	- `track_expiry: boolean`
+	- `sellable: boolean`
+	- `is_bom: boolean`
+	- `min_stock_level: number`
+	- `category_id?: Id<"categories">`
+	- `sku?: string` (auto-generated if omitted)
+	- `image_file_id?: string`
+	- `supplier_id?: Id<"suppliers">`
+	- `cost_price: number`
+	- `quantity: number`
+	- `expiry_date?: number`
+- Returns:
+	- `product_id: Id<"products">`
+	- `batch_id: Id<"batches">`
+	- `batch_code: string`
+	- `sku: string` (the generated or provided SKU)
+- Success response example:
+
+```json
+{
+	"product_id": "products_01",
+	"batch_id": "batches_01",
+	"batch_code": "BATCH-1710000000000-001",
+	"sku": "RAW-EGG-001"
+}
+```
+
+- Behavior:
+	- Creates a product and its initial batch in a single atomic call.
+	- Auto-generates SKU if not provided, following the pattern `{type_prefix}-{name_slug}-{counter}`.
+	- Auto-generates batch code if not provided.
+	- Automatically creates the inbound transaction and audit logs for both product and batch.
+	- Requires an expiry date if product tracks expiry.
+- Errors:
+	- All product creation errors (category not found, SKU collision, etc.)
+	- All batch creation errors (cost price invalid, quantity invalid, expiry required, etc.)
 
 ### Categories
 
@@ -684,12 +737,7 @@ Scope: Convex backend functions exposed to the frontend team.
 
 #### `api.inventory.createInboundReceipt`
 
-- Type: mutation
-- Access: authenticated tenant member
-- Args:
-	- `product_id: Id<"products">`
-	- `supplier_id?: Id<"suppliers">`
-	- `batch_code: string`
+- Type: mutati?: string` (auto-generated if omitted as `BATCH-{timestamp}-{index}`)
 	- `cost_price: number`
 	- `quantity: number`
 	- `expiry_date?: number`
@@ -705,12 +753,17 @@ Scope: Convex backend functions exposed to the frontend team.
 {
 	"transaction_id": "transactions_01",
 	"batch_id": "batches_01",
-	"batch_code": "BATCH-2026-001",
+	"batch_code": "BATCH-1710000000000-001",
 	"received_at": 1710000000000
 }
 ```
 
 - Behavior:
+	- Creates one batch, one inbound transaction, one transaction item, and one audit log entry.
+	- If `batch_code` is omitted, auto-generates one using timestamp and index.
+	- Requires an expiry date when the product tracks expiry.
+	- Auto-generated batch codes are unique per organization.
+- Errors:
 	- Creates one batch, one inbound transaction, one transaction item, and one audit log entry.
 	- Requires an expiry date when the product tracks expiry.
 	- Normalizes the batch code by trimming whitespace.

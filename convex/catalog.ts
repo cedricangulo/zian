@@ -1,8 +1,9 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { type MutationCtx, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { computeDelta, writeAuditLog } from "./helpers/audit";
 import { requireCurrentContext, requireOwnerContext } from "./helpers/context";
+import { ensureUniqueSku, resolveSku } from "./helpers/identifiers";
 
 const productTypeValidator = v.union(
 	v.literal("raw_material"),
@@ -10,29 +11,6 @@ const productTypeValidator = v.union(
 	v.literal("sellable"),
 	v.literal("composite"),
 );
-
-async function ensureUniqueSku(
-	ctx: MutationCtx,
-	orgId: Id<"organizations">,
-	sku: string,
-	excludingId?: string,
-) {
-	const collisions = await ctx.db
-		.query("products")
-		.withIndex("by_org_id_and_sku", (q) => q.eq("org_id", orgId).eq("sku", sku))
-		.take(2);
-
-	if (excludingId) {
-		if (collisions.some((product) => product._id !== excludingId)) {
-			throw new Error("SKU already exists in your organization");
-		}
-		return;
-	}
-
-	if (collisions.length > 0) {
-		throw new Error("SKU already exists in your organization");
-	}
-}
 
 export const listProducts = query({
 	args: {},
@@ -63,8 +41,9 @@ export const getProductById = query({
 export const createProduct = mutation({
 	args: {
 		category_id: v.optional(v.id("categories")),
-		sku: v.string(),
+		sku: v.optional(v.string()),
 		name: v.string(),
+		image_url: v.optional(v.string()),
 		base_unit: v.string(),
 		product_type: productTypeValidator,
 		sellable: v.boolean(),
@@ -83,13 +62,20 @@ export const createProduct = mutation({
 			}
 		}
 
-		await ensureUniqueSku(ctx, organization._id, args.sku);
+
+			const sku = await resolveSku(
+				ctx,
+				organization._id,
+				args.product_type,
+				args.sku,
+			);
 
 		const productId = await ctx.db.insert("products", {
 			org_id: organization._id,
 			category_id: args.category_id,
-			sku: args.sku,
+				sku,
 			name: args.name,
+				image_url: args.image_url,
 			base_unit: args.base_unit,
 			product_type: args.product_type,
 			sellable: args.sellable,
@@ -108,9 +94,10 @@ export const createProduct = mutation({
 			recordId: productId,
 			changeLog: {
 				next: {
-					sku: args.sku,
+						sku,
 					name: args.name,
 					product_type: args.product_type,
+						image_url: args.image_url,
 				},
 			},
 		});
@@ -125,6 +112,7 @@ export const updateProduct = mutation({
 		category_id: v.union(v.id("categories"), v.null()),
 		sku: v.string(),
 		name: v.string(),
+		image_url: v.optional(v.union(v.string(), v.null())),
 		base_unit: v.string(),
 		product_type: productTypeValidator,
 		sellable: v.boolean(),
@@ -150,7 +138,7 @@ export const updateProduct = mutation({
 
 		await ensureUniqueSku(ctx, organization._id, args.sku, args.product_id);
 
-		const patchData = {
+			const patchData: Record<string, unknown> = {
 			category_id: args.category_id === null ? undefined : args.category_id,
 			sku: args.sku,
 			name: args.name,
@@ -162,6 +150,10 @@ export const updateProduct = mutation({
 			is_bom: args.is_bom,
 			min_stock_level: args.min_stock_level,
 		};
+
+			if (args.image_url !== undefined) {
+				patchData.image_url = args.image_url === null ? undefined : args.image_url;
+			}
 
 		const delta = computeDelta(product as Record<string, unknown>, patchData);
 

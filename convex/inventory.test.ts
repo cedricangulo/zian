@@ -653,3 +653,156 @@ describe("inventory overview queries", () => {
 		).rejects.toThrow("Unauthorized");
 	});
 });
+
+describe("inventory item and batch creation flows", () => {
+	it("auto-generates a batch code for inbound receipts when omitted", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_batch_auto",
+			tokenIdentifier: "tid_batch_auto",
+		});
+
+		const productId = await owner.mutation(api.catalog.createProduct, {
+			sku: "AUTO-BATCH-001",
+			name: "Boba Pearls",
+			base_unit: "g",
+			product_type: "raw_material",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 0,
+		});
+
+		const receipt = await owner.mutation(api.inventory.createInboundReceipt, {
+			product_id: productId,
+			cost_price: 3,
+			quantity: 40,
+		});
+
+		expect(receipt.batch_code).toMatch(/^BCH-\d{4,}$/);
+		expect(receipt.total_asset_value).toBe(120);
+
+		const batch = await t.run(async (ctx) => ctx.db.get(receipt.batch_id));
+		expect(batch?.batch_code).toBe(receipt.batch_code);
+	});
+
+	it("creates a new item with initial batch using auto SKU and auto batch code", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_item_batch_create",
+			tokenIdentifier: "tid_item_batch_create",
+		});
+
+		const categoryId = await owner.mutation(api.categories.createCategory, {
+			name: "Food",
+		});
+
+		const supplierId = await owner.mutation(api.suppliers.createSupplier, {
+			name: "Farm Supplier",
+		});
+
+		const now = Date.now();
+		const created = await owner.mutation(
+			api.inventory.createProductWithInitialBatch,
+			{
+				category_id: categoryId,
+				name: "Egg",
+				image_url: "https://example.com/images/egg.png",
+				product_type: "raw_material",
+				base_unit: "pcs",
+				sellable: false,
+				track_expiry: true,
+				is_bom: false,
+				min_stock_level: 20,
+				supplier_id: supplierId,
+				cost_price: 5.4,
+				quantity: 89,
+				expiry_date: now + 5 * 24 * 60 * 60 * 1000,
+			},
+		);
+
+		expect(created.sku).toMatch(/^RAW-\d{4,}$/);
+		expect(created.batch_code).toMatch(/^BCH-\d{4,}$/);
+		expect(created.total_asset_value).toBeCloseTo(480.6);
+
+		const persisted = await t.run(async (ctx) => {
+			const product = await ctx.db.get(created.product_id);
+			const batch = await ctx.db.get(created.batch_id);
+			return { product, batch };
+		});
+
+		expect(persisted.product?.name).toBe("Egg");
+		expect(persisted.product?.image_url).toBe(
+			"https://example.com/images/egg.png",
+		);
+		expect(persisted.product?.sku).toBe(created.sku);
+		expect(persisted.batch?.batch_code).toBe(created.batch_code);
+		expect(persisted.batch?.supplier_id).toBe(supplierId);
+		expect(persisted.batch?.remaining_qty).toBe(89);
+	});
+
+	it("auto-generates SKU for catalog.createProduct when sku is omitted", async () => {
+		const t = createTestBackend();
+		const { actor: owner } = await seedMembership(t, {
+			clerkOrgId: "org_sku_auto",
+			tokenIdentifier: "tid_sku_auto",
+		});
+
+		const productId = await owner.mutation(api.catalog.createProduct, {
+			name: "Paper Straw",
+			image_url: "https://example.com/images/straw.png",
+			base_unit: "pcs",
+			product_type: "packaging",
+			sellable: false,
+			stock_tracked: true,
+			track_expiry: false,
+			is_bom: false,
+			min_stock_level: 100,
+		});
+
+		const product = await owner.query(api.catalog.getProductById, {
+			product_id: productId,
+		});
+
+		expect(product.sku).toMatch(/^PKG-\d{4,}$/);
+		expect(product.image_url).toBe("https://example.com/images/straw.png");
+	});
+
+	it("blocks staff from combined createProductWithInitialBatch", async () => {
+		const t = createTestBackend();
+		const orgId = await seedOrganization(t, {
+			clerkOrgId: "org_item_batch_auth",
+		});
+
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_item_batch_owner",
+			role: "owner",
+		});
+		await seedUser(t, {
+			orgId,
+			tokenIdentifier: "tid_item_batch_staff",
+			role: "staff",
+		});
+
+		const staff = asOrgUser(t, {
+			clerkOrgId: "org_item_batch_auth",
+			tokenIdentifier: "tid_item_batch_staff",
+			orgRole: "member",
+		});
+
+		await expect(
+			staff.mutation(api.inventory.createProductWithInitialBatch, {
+				name: "Coke 1.5L",
+				product_type: "sellable",
+				base_unit: "bottle",
+				sellable: true,
+				track_expiry: false,
+				is_bom: false,
+				cost_price: 50,
+				quantity: 10,
+			}),
+		).rejects.toThrow("Unauthorized");
+	});
+});
